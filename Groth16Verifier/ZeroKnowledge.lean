@@ -75,17 +75,19 @@ theorem simulated_proof_verifies
     (inputs  : List Fr)
     (witness : List Fr)
     (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed vk inputs) :
+    (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk (Sim td vk inputs) inputs = true := by
-  rw [← groth16_perfect_zk td Prove R1CS pd vk inputs witness h_r1cs]
+  rw [← groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness h_r1cs]
   exact Completeness.verifyGroth16_complete Prove pd R1CS vk inputs witness h_r1cs h_wf
 
 -- ── Witness Indistinguishability ──────────────────────────────────────────────
 
+omit [DecidableEq Fr] [Module Fr G2] [DecidableEq GT] in
 /-- Proofs for the same statement with different witnesses are indistinguishable.
     Follows from: both equal the simulator's output (by ZK). -/
 theorem witness_indistinguishable
     (td       : Trapdoor)
+    (Sim      : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
     (Prove    : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
     (R1CS     : R1CSRelation Fr)
     (pd       : PairingData Fr G1 G2 GT)
@@ -96,7 +98,7 @@ theorem witness_indistinguishable
     (h_r1cs₁  : R1CS inputs witness₁)
     (h_r1cs₂  : R1CS inputs witness₂) :
     Prove vk witness₁ inputs = Prove vk witness₂ inputs := by
-  rw [groth16_perfect_zk td Prove R1CS pd vk inputs witness₁ h_r1cs₁]
-  rw [groth16_perfect_zk td Prove R1CS pd vk inputs witness₂ h_r1cs₂]
+  rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₁ h_r1cs₁]
+  rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₂ h_r1cs₂]
 
 end Groth16Verifier.ZeroKnowledge

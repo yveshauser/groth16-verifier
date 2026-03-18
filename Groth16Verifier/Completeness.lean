@@ -42,7 +42,7 @@ axiom groth16_prover_correct
     (inputs  : List Fr)
     (witness : List Fr)
     (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed vk inputs) :
+    (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     Groth16Valid pd vk (Prove vk witness inputs) inputs
 
 -- ── Completeness Theorem ──────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ theorem verifyGroth16_complete
     (inputs  : List Fr)
     (witness : List Fr)
     (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed vk inputs) :
+    (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk (Prove vk witness inputs) inputs = true := by
   rw [verifyGroth16_honest]
   exact groth16_prover_correct Prove pd R1CS vk inputs witness h_r1cs h_wf
@@ -63,14 +63,14 @@ theorem verifyGroth16_complete
 -- ── No False Negatives ────────────────────────────────────────────────────────
 
 /-- The verifier never rejects a correctly generated proof. -/
-corollary verifyGroth16_no_false_negatives
+lemma verifyGroth16_no_false_negatives
     (pd      : PairingData Fr G1 G2 GT)
     (R1CS    : R1CSRelation Fr)
     (vk      : VerifyingKey G1 G2)
     (inputs  : List Fr)
     (witness : List Fr)
     (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed vk inputs) :
+    (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     ¬ (verifyGroth16 pd vk (Prove vk witness inputs) inputs = false) := by
   simp [verifyGroth16_complete Prove pd R1CS vk inputs witness h_r1cs h_wf]
 

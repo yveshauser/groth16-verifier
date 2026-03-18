@@ -96,7 +96,6 @@ lemma computeVkX_eq_vkX
   | cons ic0 rest =>
     simp
     rw [foldl_zip_smul_eq]
-    simp [add_comm]
 
 /-- The main form we use in the Honesty proof. -/
 lemma computeVkX_eq_vkX_vk
@@ -109,6 +108,5 @@ lemma computeVkX_eq_vkX_vk
   | cons ic0 rest =>
     simp only []
     rw [foldl_zip_smul_eq]
-    simp [add_comm]
 
 end Groth16Verifier.Impl

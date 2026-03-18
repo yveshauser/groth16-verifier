@@ -65,9 +65,7 @@ The library establishes four properties of `verify_groth16` in
 **Honesty** is the core theorem and is proved purely from algebraic
 properties of pairings — no cryptographic hardness assumptions. The other
 three theorems are reduced to named axioms that correspond to standard
-Groth16 security results from the literature, which can be discharged once
-[ArkLib](https://github.com/Verified-zkEVM/ArkLib) mechanises Groth16
-completeness and soundness.
+Groth16 security results from the literature.
 
 ### The Groth16 verification equation
 
@@ -90,8 +88,7 @@ groth16-verifier/
 ├── lean-toolchain              Pins Lean 4.14.0
 ├── lakefile.toml               Lake build config + Mathlib dependency
 ├── lake-manifest.json          Dependency lock file (run lake update -R to populate)
-├── flake.nix                   Nix development shell (elan, just, git)
-├── justfile                    Convenience task runner
+├── flake.nix                   Nix development shell (elan, git)
 ├── .github/workflows/ci.yml    GitHub Actions CI
 ├── scripts/
 │   └── check_axioms.lean       Introspects which axioms each theorem depends on
@@ -131,12 +128,11 @@ The Honesty theorem formally certifies this correspondence.
 ### Prerequisites
 
 - [elan](https://github.com/leanprover/elan) — the Lean version manager
-- [just](https://github.com/casey/just) — task runner (optional but recommended)
 
 Or with Nix (consistent with the Circom/snarkjs dev shell in this repo):
 
 ```bash
-nix develop   # drops you into a shell with elan, just, git, curl
+nix develop   # drops you into a shell with elan, git, curl
 ```
 
 ### First-time setup
@@ -158,13 +154,6 @@ lake exe cache get
 
 # 5. Build
 lake build
-```
-
-Or using `just`:
-
-```bash
-just setup   # runs steps 2–5 in one command
-just build
 ```
 
 ### Interactive proof checking
@@ -230,7 +219,7 @@ theorems from the literature:
 To inspect which axioms each theorem depends on at runtime:
 
 ```bash
-just axioms   # runs scripts/check_axioms.lean
+lake env lean scripts/check_axioms.lean
 ```
 
 The invariant to maintain: `verifyGroth16_honest` must depend **only** on
@@ -242,15 +231,15 @@ axiom appears there, the Honesty proof has an unintended gap.
 ## Useful commands
 
 ```bash
-just setup          # first-time: install toolchain, resolve deps, fetch cache
-just build          # lake build
-just sorry          # grep for sorry / admit across all .lean files
-just axioms         # show axiom dependencies of main theorems
-just status         # per-file proof status summary
-just module Honesty # build a single module
-just lint           # check for warnings
-just clean          # remove build artifacts
-just reset          # remove .lake/ entirely (nuclear option)
+# First-time: install toolchain, resolve deps, fetch cache
+elan toolchain install "$(cat lean-toolchain)" && lake update -R && lake exe cache get
+
+lake build                          # build everything
+lake build Groth16Verifier.Honesty  # build a single module
+lake env lean scripts/check_axioms.lean  # show axiom dependencies
+grep -r 'sorry\|admit' Groth16Verifier/  # find remaining sorries / admits
+rm -rf .lake/build                  # remove build artifacts
+rm -rf .lake/                       # nuclear reset
 ```
 
 ---
@@ -259,8 +248,6 @@ just reset          # remove .lake/ entirely (nuclear option)
 
 | Project | Layer | Relationship |
 |---|---|---|
-| [ArkLib](https://github.com/Verified-zkEVM/ArkLib) | Proof system security | Would discharge our AGM axiom once it has Groth16 soundness |
-| [zkLean](https://github.com/GaloisInc/zkLean) | Circuit constraints | Complements this project — verifies individual gadgets, not proof systems |
 | [ak-381](https://github.com/Modulo-P/ak-381) | Aiken implementation | The library whose internal logic we are verifying |
 | [Mathlib](https://github.com/leanprover-community/mathlib4) | Mathematics | Foundation: groups, fields, polynomials, linear independence |
 
@@ -272,7 +259,6 @@ just reset          # remove .lake/ entirely (nuclear option)
 - Fuchsbauer, G., Kiltz, E., & Loss, J. (2018). [The Algebraic Group Model and its Applications](https://eprint.iacr.org/2017/620). *CRYPTO 2018*.
 - Firsov, D. & Livshits, B. (2024). [The Ouroboros of ZK: Why Verifying the Verifier Unlocks Longer-Term ZK Innovation](https://eprint.iacr.org/2024/768). *ePrint 2024/768*.
 - Nethermind & Matter Labs. (2025). [Formal Verification of the ZKSync Verifier](https://www.nethermind.io/blog/formal-verification-of-the-zksync-verifier). *First production ZK verifier verification, using EasyCrypt*.
-- Verified zkEVM. [ArkLib: Formally Verified Arguments of Knowledge in Lean](https://github.com/Verified-zkEVM/ArkLib).
 - Cardano Foundation. [CIP-0381: Plutus support for BLS12-381 curve operations](https://cips.cardano.org/cip/CIP-0381).
 - Cardano Foundation. [CIP-0133: Plutus support for Multi-Scalar Multiplication over BLS12-381](https://cips.cardano.org/cip/CIP-0133).
 

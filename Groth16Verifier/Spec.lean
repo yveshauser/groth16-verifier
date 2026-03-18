@@ -10,7 +10,8 @@
 -- where vk_x = IC[0] + Σᵢ xᵢ · IC[i+1]  (linear combination over G1)
 
 import Groth16Verifier.Types
-import Mathlib.Algebra.BigOperators.Group.List.Basic
+import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+import Mathlib.Tactic.Abel
 
 namespace Groth16Verifier.Spec
 
@@ -45,15 +46,16 @@ lemma vkX_empty_ic (inputs : List Fr) :
 
 lemma vkX_nil_inputs (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
     (h : vk.ic = ic0 :: rest) :
-    vkX vk [] = ic0 := by
+    vkX vk ([] : List Fr) = ic0 := by
   simp [vkX, h, List.zipWith_nil_left]
 
 lemma vkX_cons (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
     (x : Fr) (xs : List Fr) (h : vk.ic = ic0 :: rest) :
     vkX vk (x :: xs) =
-      ic0 + x • (rest.head?) + vkX { vk with ic := (0 :: rest.tail) } xs := by
-  simp [vkX, h]
-  ring
+      ic0 + x • (rest.head?.getD 0) + vkX { vk with ic := (0 :: rest.tail) } xs := by
+  cases rest with
+  | nil        => simp [vkX, h, smul_zero]
+  | cons r0 rest' => simp [vkX, h]; abel
 
 -- ── The Groth16 Verification Predicate ───────────────────────────────────────
 
@@ -112,7 +114,6 @@ theorem groth16Valid_iff_neg
                 pd.pairing (vkX vk inputs) vk.gamma *
                 pd.pairing proof.C vk.delta := by group
           _ = 1 := h)
-    rw [inv_inv] at this
-    exact this.symm
+    exact inv_inj.mp this
 
 end Groth16Verifier.Spec

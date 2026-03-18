@@ -33,7 +33,6 @@
 
           packages = buildDeps ++ [
             elan            # manages the Lean toolchain
-            pkgs.just       # task runner (reads justfile)
             pkgs.jq         # useful for inspecting lake-manifest.json
           ];
 
@@ -53,10 +52,8 @@
             echo "  Lean toolchain : $(cat lean-toolchain 2>/dev/null || echo 'see lean-toolchain')"
             echo ""
             echo "  Quick start:"
-            echo "    just setup    # elan install + lake update + cache get"
-            echo "    just build    # lake build"
-            echo "    just check    # lake build (alias)"
-            echo "    just sorry    # find remaining sorries / admits"
+            echo "    lake build              # build everything"
+            echo "    lake exe cache get      # fetch prebuilt Mathlib oleans"
             echo ""
             echo "  First-time setup takes ~20 min to download Mathlib oleans."
             echo ""
@@ -66,7 +63,7 @@
         # ── VS Code shell (includes the Lean 4 extension) ─────────────────────
         devShells.vscode = pkgs.mkShell {
           name = "groth16-verifier-vscode";
-          packages = buildDeps ++ [ elan pkgs.just vscode-with-lean ];
+          packages = buildDeps ++ [ elan vscode-with-lean ];
           inherit (self.devShells.${system}.default) ELAN_HOME GIT_SSL_CAINFO SSL_CERT_FILE shellHook;
         };
       }

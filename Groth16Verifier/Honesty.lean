@@ -120,7 +120,7 @@ theorem verifyGroth16_honest
   by_cases h_len : vk.ic.length ≠ inputs.length + 1
   · -- ── Ill-formed case ──────────────────────────────────────────────────────
     -- Verifier returns false; the equation cannot hold either.
-    simp only [h_len, ite_true]
+    simp only [if_pos h_len]
     constructor
     · intro h; exact absurd h (by decide)
     · intro h_valid
@@ -141,8 +141,8 @@ theorem verifyGroth16_honest
     -- `decide P = true ↔ P` for a decidable P
     rw [decide_eq_true_eq]
     -- The negated-form = 1 iff the standard Groth16 equation holds
-    rw [← groth16Valid_iff_neg pd vk proof inputs]
-    simp [Groth16ValidNeg, Groth16Valid, mul_assoc]
+    rw [groth16Valid_iff_neg pd vk proof inputs]
+    simp [Groth16ValidNeg, mul_assoc]
 
 -- ── Corollaries ───────────────────────────────────────────────────────────────
 
