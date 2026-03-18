@@ -5,7 +5,7 @@
 
 import Groth16Verifier.Algebra
 
-namespace Groth16Verifier
+namespace Groth16Verifier.Types
 
 variable (Fr : Type*) [Field Fr] [DecidableEq Fr]
 variable (G1 : Type*) [AddCommGroup G1] [Module Fr G1]
@@ -57,4 +57,4 @@ def VerifyingKey.WellFormed (vk : VerifyingKey G1 G2) (n : ℕ) : Prop :=
 def wellFormed (vk : VerifyingKey G1 G2) (inputs : List Fr) : Prop :=
   vk.ic.length = inputs.length + 1
 
-end Groth16Verifier
+end Groth16Verifier.Types

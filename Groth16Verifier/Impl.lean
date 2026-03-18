@@ -7,7 +7,9 @@
 
 import Groth16Verifier.Spec
 
-namespace Groth16Verifier
+namespace Groth16Verifier.Impl
+
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -109,4 +111,4 @@ lemma computeVkX_eq_vkX_vk
     rw [foldl_zip_smul_eq]
     simp [add_comm]
 
-end Groth16Verifier
+end Groth16Verifier.Impl

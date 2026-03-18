@@ -3,4 +3,6 @@ import Groth16Verifier.Honesty
 import Groth16Verifier.Impl
 import Groth16Verifier.Spec
 import Groth16Verifier.Types
-
+import Groth16Verifier.Completeness
+import Groth16Verifier.Soundness
+import Groth16Verifier.ZeroKnowledge

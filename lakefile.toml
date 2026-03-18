@@ -2,12 +2,13 @@ name = "groth16-verifier"
 version = "0.1.0"
 keywords = ["zero-knowledge", "groth16", "formal-verification", "bls12-381"]
 description = "Formal verification of a Groth16 verifier over BLS12-381 in Lean 4"
- 
+defaultTargets = ["Groth16Verifier"]
+
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.14.0"
- 
+rev = "v4.29.0-rc2"
+
 [[lean_lib]]
 name = "Groth16Verifier"
-globs = ["Groth16Verifier.**"]
+globs = ["Groth16Verifier", "Groth16Verifier.**"]

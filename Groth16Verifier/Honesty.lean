@@ -17,7 +17,9 @@
 
 import Groth16Verifier.Impl
 
-namespace Groth16Verifier
+namespace Groth16Verifier.Honesty
+
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -164,4 +166,4 @@ theorem verifyGroth16_deterministic
     verifyGroth16 pd vk proof inputs = verifyGroth16 pd vk proof inputs :=
   rfl
 
-end Groth16Verifier
+end Groth16Verifier.Honesty

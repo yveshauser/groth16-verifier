@@ -5,11 +5,10 @@
 -- A concrete instance would instantiate these over the actual BLS12-381 curve.
 
 import Mathlib.Algebra.Group.Basic
-import Mathlib.Algebra.Group.Units.Lemmas
 import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Field.Basic
 
-namespace Groth16Verifier
+namespace Groth16Verifier.Algebra
 
 -- ── Type parameters ──────────────────────────────────────────────────────────
 
@@ -114,4 +113,4 @@ lemma multipairing_eq_one_iff
     rw [h]
     group
 
-end Groth16Verifier
+end Groth16Verifier.Algebra

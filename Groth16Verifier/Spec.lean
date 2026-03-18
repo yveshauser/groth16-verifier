@@ -10,10 +10,11 @@
 -- where vk_x = IC[0] + Σᵢ xᵢ · IC[i+1]  (linear combination over G1)
 
 import Groth16Verifier.Types
-import Mathlib.Algebra.BigOperators.Group.List
+import Mathlib.Algebra.BigOperators.Group.List.Basic
 
-namespace Groth16Verifier
+namespace Groth16Verifier.Spec
 
+open Groth16Verifier.Algebra Groth16Verifier.Types
 open scoped BigOperators
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
@@ -114,4 +115,4 @@ theorem groth16Valid_iff_neg
     rw [inv_inv] at this
     exact this.symm
 
-end Groth16Verifier
+end Groth16Verifier.Spec
