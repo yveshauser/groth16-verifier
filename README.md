@@ -2,7 +2,7 @@
 
 Formal verification of a Groth16 zk-SNARK verifier over BLS12-381 in Lean 4.
 
-This project proves that the [`groth16_verifier.ak`](../groth16_verifier.ak)
+This project proves that the [`groth16_verifier.ak`](groth16_verifier.ak)
 Aiken smart contract on Cardano correctly implements the Groth16 verification
 equation — and that it is sound, complete, and zero-knowledge — using Lean 4
 and Mathlib as the proof foundation.

@@ -6,3 +6,4 @@ import Groth16Verifier.Types
 import Groth16Verifier.Completeness
 import Groth16Verifier.Soundness
 import Groth16Verifier.ZeroKnowledge
+import Groth16Verifier.ProofOfKnowledge

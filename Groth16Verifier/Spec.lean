@@ -70,6 +70,17 @@ def Groth16Valid
     pd.pairing (vkX vk inputs) vk.gamma *
     pd.pairing proof.C vk.delta
 
+instance instDecidableGroth16Valid
+    (pd     : PairingData Fr G1 G2 GT)
+    (vk     : VerifyingKey G1 G2)
+    (proof  : Proof G1 G2)
+    (inputs : List Fr) :
+    Decidable (Groth16Valid pd vk proof inputs) :=
+  inferInstanceAs (Decidable (pd.pairing proof.A proof.B =
+    pd.pairing vk.alpha vk.beta *
+    pd.pairing (vkX vk inputs) vk.gamma *
+    pd.pairing proof.C vk.delta))
+
 -- ── Reformulation: the negated-A form ────────────────────────────────────────
 -- This is how the Aiken contract checks it:
 --   e(-A,B) · e(α,β) · e(vk_x,γ) · e(C,δ) = 1
