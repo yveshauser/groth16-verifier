@@ -15,6 +15,7 @@ variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
 variable {G2 : Type*} [AddCommGroup G2] [Module Fr G2]
 variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
+variable (pd : PairingData Fr G1 G2 GT)
 
 -- ── computeVkX ───────────────────────────────────────────────────────────────
 -- Mirrors the Aiken `compute_vk_x` function.
@@ -34,7 +35,6 @@ def computeVkX (ic : List G1) (inputs : List Fr) : G1 :=
 -- Mirrors the Aiken `verify_groth16` function exactly.
 
 def verifyGroth16
-    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr) : Bool :=
