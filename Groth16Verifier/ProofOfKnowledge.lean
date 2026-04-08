@@ -10,11 +10,11 @@
 --
 -- Crucially, this is stated in terms of `verifyGroth16` (the Aiken
 -- implementation) rather than `Groth16Valid` (the math spec). That is only
--- possible because the Honesty theorem bridges the two. Verifying the verifier
+-- possible because the Correctness theorem bridges the two. Verifying the verifier
 -- is what grounds the PoK claim at the level of the deployed contract:
 --
 --   verifyGroth16 = true
---   ↔ Groth16Valid          (Honesty — the verified verifier)
+--   ↔ Groth16Valid          (Correctness — the verified verifier)
 --   → ∃ w, R1CS x w         (AGM extractor axiom)
 --
 -- See: Firsov & Livshits, "The Ouroboros of ZK" (ePrint 2024/768).
@@ -25,7 +25,7 @@ namespace Groth16Verifier.ProofOfKnowledge
 
 open Groth16Verifier
 open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec
-open Groth16Verifier.Impl Groth16Verifier.Honesty Groth16Verifier.Soundness
+open Groth16Verifier.Impl Groth16Verifier.Correctness Groth16Verifier.Soundness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -39,7 +39,7 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
     public inputs x, E(π, x) is a valid witness for R(x, ·).
 
     This is stated in terms of `verifyGroth16` (the Aiken implementation),
-    not `Groth16Valid` (the mathematical spec). The Honesty theorem is what
+    not `Groth16Valid` (the mathematical spec). The Correctness theorem is what
     makes the two interchangeable — and therefore what makes this formulation
     meaningful at the implementation level. -/
 def ProofOfKnowledge
@@ -58,10 +58,10 @@ def ProofOfKnowledge
     The extractor applies the AGM knowledge extractor axiom: given an accepting
     proof, it recovers the witness that the prover must have known.
 
-    The key step is `verifyGroth16_honest`: because we have formally verified
+    The key step is `verifyGroth16_correct`: because we have formally verified
     the Aiken verifier, we can convert an implementation-level acceptance into
     the mathematical predicate `Groth16Valid`, and then invoke the AGM extractor.
-    Without the Honesty theorem this statement could only be made at the level
+    Without the Correctness theorem this statement could only be made at the level
     of the abstract spec — not for the deployed contract. -/
 theorem groth16_is_proof_of_knowledge
     (R1CS : R1CSRelation Fr)
@@ -74,7 +74,7 @@ theorem groth16_is_proof_of_knowledge
     else []
   intro π x h_acc
   have h_valid : Groth16Valid pd vk π x :=
-    (verifyGroth16_honest pd vk π x).mp h_acc
+    (verifyGroth16_correct pd vk π x).mp h_acc
   simp only [dif_pos h_valid]
   exact (agm_knowledge_extractor R1CS pd vk π x h_valid).choose_spec
 

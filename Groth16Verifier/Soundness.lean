@@ -18,7 +18,7 @@ import Groth16Verifier.Completeness
 namespace Groth16Verifier.Soundness
 
 open Groth16Verifier
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Honesty
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -63,8 +63,8 @@ theorem verifyGroth16_sound
     (h_wf    : wellFormed Fr G1 G2 vk inputs)
     (h_acc   : verifyGroth16 pd vk proof inputs = true) :
     ∃ witness : List Fr, R1CS inputs witness := by
-  -- Convert the Bool result to the mathematical predicate (Honesty theorem)
-  rw [verifyGroth16_honest] at h_acc
+  -- Convert the Bool result to the mathematical predicate (Correctness theorem)
+  rw [verifyGroth16_correct] at h_acc
   -- Apply the AGM knowledge extractor
   exact agm_knowledge_extractor R1CS pd vk proof inputs h_acc
 

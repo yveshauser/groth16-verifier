@@ -1,8 +1,8 @@
--- Groth16Verifier.Honesty
+-- Groth16Verifier.Correctness
 --
--- HONESTY THEOREM
+-- CORRECTNESS THEOREM
 --
--- The verifier is "honest": it returns `true` if and only if the
+-- The verifier is "correct": it returns `true` if and only if the
 -- Groth16 pairing equation holds.
 --
 --   verifyGroth16 pd vk proof inputs = true
@@ -17,7 +17,7 @@
 
 import Groth16Verifier.Impl
 
-namespace Groth16Verifier.Honesty
+namespace Groth16Verifier.Correctness
 
 open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
 
@@ -25,11 +25,6 @@ variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
 variable {G2 : Type*} [AddCommGroup G2] [Module Fr G2]
 variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
-
--- ── Helper: decide-based Bool equality ───────────────────────────────────────
-
-lemma decide_eq_true_iff {P : Prop} [Decidable P] :
-    decide P = true ↔ P := by simp [decide_eq_true_eq]
 
 -- ── Groth16Valid requires well-formed IC length ───────────────────────────────
 --
@@ -98,7 +93,7 @@ lemma groth16Valid_requires_wellFormed
     -- valid circuit proof; but this requires knowledge of the SRS structure.
     admit
 
--- ── Main Honesty Theorem ──────────────────────────────────────────────────────
+-- ── Main Correctness Theorem ──────────────────────────────────────────────────
 
 /-- The verifier returns `true` iff the Groth16 equation holds.
 
@@ -109,7 +104,7 @@ lemma groth16Valid_requires_wellFormed
     3. `decide (lhs = 1) = true` ↔ `lhs = 1` (by `decide_eq_true_eq`).
     4. `lhs = 1` ↔ the pairing equation holds (by `groth16Valid_iff_neg`).
 -/
-theorem verifyGroth16_honest
+theorem verifyGroth16_correct
     (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
@@ -155,7 +150,7 @@ theorem verifyGroth16_false_iff
     verifyGroth16 pd vk proof inputs = false
     ↔ ¬ Groth16Valid pd vk proof inputs := by
   rw [← Bool.not_eq_true]
-  simp [verifyGroth16_honest]
+  simp [verifyGroth16_correct]
 
 /-- The verifier is deterministic: same inputs always give same output -/
 theorem verifyGroth16_deterministic
@@ -166,4 +161,4 @@ theorem verifyGroth16_deterministic
     verifyGroth16 pd vk proof inputs = verifyGroth16 pd vk proof inputs :=
   rfl
 
-end Groth16Verifier.Honesty
+end Groth16Verifier.Correctness

@@ -3,7 +3,7 @@
 -- Lean transliteration of the Aiken `verify_groth16` function.
 -- This is the implementation we are verifying — it mirrors the
 -- groth16_verifier.ak contract as closely as possible so that
--- the Honesty theorem bridges the two artefacts.
+-- the Correctness theorem bridges the two artefacts.
 
 import Groth16Verifier.Spec
 
@@ -75,7 +75,7 @@ private lemma foldl_zip_smul_eq
     cases Ps with
     | nil => simp
     | cons P Ps =>
-      simp [List.zipWith, List.foldl]
+      simp [List.zipWith]
       rw [ih (init + x • P)]
       -- init + x•P + Σ(zipWith) = init + (x•P + Σ(zipWith))
       abel
@@ -97,7 +97,7 @@ lemma computeVkX_eq_vkX
     simp
     rw [foldl_zip_smul_eq]
 
-/-- The main form we use in the Honesty proof. -/
+/-- The main form we use in the Correctness proof. -/
 lemma computeVkX_eq_vkX_vk
     (vk     : VerifyingKey G1 G2)
     (inputs : List Fr) :

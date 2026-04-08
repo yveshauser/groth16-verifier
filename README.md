@@ -57,12 +57,12 @@ The library establishes four properties of `verify_groth16` in
 
 | # | Theorem | Statement | File | Proof status |
 |---|---|---|---|---|
-| 1 | **Honesty** | `verifyGroth16 pd vk proof inputs = true ↔ Groth16Valid pd vk proof inputs` | `Honesty.lean` | ✓ Proved (2 admits for ill-formed IC — see below) |
+| 1 | **Correctness** | `verifyGroth16 pd vk proof inputs = true ↔ Groth16Valid pd vk proof inputs` | `Correctness.lean` | ✓ Proved (2 admits for ill-formed IC — see below) |
 | 2 | **Completeness** | An honest prover with a valid witness is always accepted | `Completeness.lean` | ✓ Proved, modulo `groth16_prover_correct` axiom |
 | 3 | **Soundness** | A cheating prover cannot be accepted | `Soundness.lean` | ✓ Proved, modulo `agm_knowledge_extractor` axiom |
 | 4 | **Zero-Knowledge** | Proof reveals nothing about the witness | `ZeroKnowledge.lean` | ✓ Proved, modulo `groth16_perfect_zk` axiom |
 
-**Honesty** is the core theorem and is proved purely from algebraic
+**Correctness** is the core theorem and is proved purely from algebraic
 properties of pairings — no cryptographic hardness assumptions. The other
 three theorems are reduced to named axioms that correspond to standard
 Groth16 security results from the literature.
@@ -76,7 +76,7 @@ e(-A, B) · e(α, β) · e(vk_x, γ) · e(C, δ) = 1_GT
 ```
 
 where `vk_x = IC[0] + x₁·IC[1] + … + xₙ·IC[n]` and `e` is the BLS12-381
-Ate pairing. The **Honesty** theorem proves this `Bool` computation is
+Ate pairing. The **Correctness** theorem proves this `Bool` computation is
 equivalent to the mathematical predicate `Groth16Valid`.
 
 ---
@@ -100,7 +100,7 @@ groth16-verifier/
     ├── Spec.lean               Mathematical spec: vkX, Groth16Valid, Groth16ValidNeg
     ├── Impl.lean               Lean transliteration of groth16_verifier.ak
     │                           (computeVkX, verifyGroth16, foldl/zipWith equivalence)
-    ├── Honesty.lean            ★ verifyGroth16 = true ↔ Groth16Valid
+    ├── Correctness.lean        ★ verifyGroth16 = true ↔ Groth16Valid
     ├── Completeness.lean       Honest prover always accepted
     ├── Soundness.lean          Cheating prover rejected (under AGM)
     └── ZeroKnowledge.lean      Witness indistinguishability
@@ -119,7 +119,7 @@ The Lean `verifyGroth16` in `Impl.lean` mirrors `verify_groth16` in
 | `pairing.mul_miller_loop_result a b` | `a * b` in GT |
 | `pairing.final_verify lhs one` | `decide (lhs = 1)` |
 
-The Honesty theorem formally certifies this correspondence.
+The Correctness theorem formally certifies this correspondence.
 
 ---
 
@@ -162,8 +162,8 @@ Open the project folder in VS Code with the
 [Lean 4 extension](https://marketplace.visualstudio.com/items?itemName=leanprover.lean4)
 installed. The infoview panel shows the proof state at the cursor position.
 
-A good entry point is `Honesty.lean` — place the cursor inside
-`verifyGroth16_honest` and step through the tactic proof to see how the
+A good entry point is `Correctness.lean` — place the cursor inside
+`verifyGroth16_correct` and step through the tactic proof to see how the
 algebraic identity unfolds.
 
 ---
@@ -181,8 +181,8 @@ These lemmas have no remaining gaps:
 - `Spec.groth16Valid_iff_neg` — equivalence of the two verification forms
 - `Impl.foldl_zip_smul_eq` — `foldl` over `zip` equals `zipWith` sum
 - `Impl.computeVkX_eq_vkX_vk` — implementation matches spec
-- `Honesty.verifyGroth16_honest` (well-formed case) — the main theorem
-- `Honesty.verifyGroth16_false_iff` — false iff equation does not hold
+- `Correctness.verifyGroth16_correct` (well-formed case) — the main theorem
+- `Correctness.verifyGroth16_false_iff` — false iff equation does not hold
 - `Completeness.verifyGroth16_complete` — honest prover accepted
 - `Completeness.verifyGroth16_no_false_negatives`
 - `Soundness.verifyGroth16_sound` — cheating prover rejected
@@ -192,7 +192,7 @@ These lemmas have no remaining gaps:
 
 ### Remaining admits
 
-Two `admit`s remain in `Honesty.lean`, both in the ill-formed input
+Two `admit`s remain in `Correctness.lean`, both in the ill-formed input
 case — when `vk.ic.length ≠ inputs.length + 1`. These cover the backward
 direction: showing `¬ Groth16Valid` when the IC list is the wrong length.
 
@@ -222,9 +222,9 @@ To inspect which axioms each theorem depends on at runtime:
 lake env lean scripts/check_axioms.lean
 ```
 
-The invariant to maintain: `verifyGroth16_honest` must depend **only** on
+The invariant to maintain: `verifyGroth16_correct` must depend **only** on
 `propext`, `Classical.choice`, `Quot.sound`, and `funext`. If any crypto
-axiom appears there, the Honesty proof has an unintended gap.
+axiom appears there, the Correctness proof has an unintended gap.
 
 ---
 
@@ -235,7 +235,7 @@ axiom appears there, the Honesty proof has an unintended gap.
 elan toolchain install "$(cat lean-toolchain)" && lake update -R && lake exe cache get
 
 lake build                          # build everything
-lake build Groth16Verifier.Honesty  # build a single module
+lake build Groth16Verifier.Correctness  # build a single module
 lake env lean scripts/check_axioms.lean  # show axiom dependencies
 grep -r 'sorry\|admit' Groth16Verifier/  # find remaining sorries / admits
 rm -rf .lake/build                  # remove build artifacts

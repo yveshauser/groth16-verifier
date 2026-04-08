@@ -19,7 +19,7 @@ import Groth16Verifier.Soundness
 namespace Groth16Verifier.ZeroKnowledge
 
 open Groth16Verifier
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Honesty Groth16Verifier.Soundness
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness Groth16Verifier.Soundness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]

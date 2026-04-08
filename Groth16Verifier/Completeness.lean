@@ -6,14 +6,14 @@
 -- their proof will always be accepted by the verifier.
 --
 -- This follows directly from:
---   1. The Honesty theorem (verifier = true ↔ equation holds)
+--   1. The Correctness theorem (verifier = true ↔ equation holds)
 --   2. The Groth16 completeness axiom (honest prover satisfies the equation)
 
-import Groth16Verifier.Honesty
+import Groth16Verifier.Correctness
 
 namespace Groth16Verifier.Completeness
 
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Honesty
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -57,7 +57,7 @@ theorem verifyGroth16_complete
     (h_r1cs  : R1CS inputs witness)
     (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk (Prove vk witness inputs) inputs = true := by
-  rw [verifyGroth16_honest]
+  rw [verifyGroth16_correct]
   exact groth16_prover_correct Prove pd R1CS vk inputs witness h_r1cs h_wf
 
 -- ── No False Negatives ────────────────────────────────────────────────────────
