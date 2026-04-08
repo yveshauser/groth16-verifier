@@ -16,6 +16,7 @@
 -- it bridges the Lean model and the Aiken implementation.
 
 import Groth16Verifier.Impl
+import Groth16Verifier.Spec
 
 namespace Groth16Verifier.Correctness
 
