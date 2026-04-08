@@ -2,14 +2,14 @@
 --
 -- Lean transliteration of the Aiken `verify_groth16` function.
 -- This is the implementation we are verifying — it mirrors the
--- groth16_verifier.ak contract as closely as possible so that
--- the Correctness theorem bridges the two artefacts.
+-- groth16_verifier.ak contract as closely as possible
 
-import Groth16Verifier.Spec
+import Groth16Verifier.Algebra
+import Groth16Verifier.Types
 
 namespace Groth16Verifier.Impl
 
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec
+open Groth16Verifier.Algebra Groth16Verifier.Types
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -53,60 +53,5 @@ def verifyGroth16
       pd.pairing proof.C   vk.delta
     -- final_verify: check the product equals 1_GT
     decide (lhs = 1)
-
--- ── foldl / zipWith equivalence ──────────────────────────────────────────────
---
--- `List.foldl_zip_eq_sum_zipWith` is not in Mathlib under that name, so we
--- prove what we need directly.  The key identity is:
---
---   List.foldl (fun acc (s, P) => acc + s • P) init (xs.zip Ps)
---   = init + (List.zipWith (· • ·) xs Ps).sum
-
-/-- Core foldl-over-zip identity.
-    Proved by induction; the accumulator absorbs the initial value. -/
-private lemma foldl_zip_smul_eq
-    {α : Type*} [AddCommGroup α] [Module Fr α]
-    (init : α) (xs : List Fr) (Ps : List α) :
-    List.foldl (fun acc pair => acc + pair.1 • pair.2) init (xs.zip Ps)
-    = init + (List.zipWith (· • ·) xs Ps).sum := by
-  induction xs generalizing init Ps with
-  | nil => simp
-  | cons x xs ih =>
-    cases Ps with
-    | nil => simp
-    | cons P Ps =>
-      simp [List.zipWith]
-      rw [ih (init + x • P)]
-      -- init + x•P + Σ(zipWith) = init + (x•P + Σ(zipWith))
-      abel
-
--- ── Equivalence: computeVkX = vkX ────────────────────────────────────────────
--- vkX uses List.zipWith + sum (clean for proofs)
--- computeVkX uses List.foldl  (mirrors the Aiken contract)
-
-lemma computeVkX_eq_vkX
-    (ic     : List G1)
-    (inputs : List Fr) :
-    computeVkX ic inputs = vkX (G2 := G2)
-      { alpha := (0:G1), beta := (0:G2), gamma := 0, delta := 0, ic := ic }
-      inputs := by
-  simp [computeVkX, vkX]
-  cases ic with
-  | nil  => simp
-  | cons ic0 rest =>
-    simp
-    rw [foldl_zip_smul_eq]
-
-/-- The main form we use in the Correctness proof. -/
-lemma computeVkX_eq_vkX_vk
-    (vk     : VerifyingKey G1 G2)
-    (inputs : List Fr) :
-    computeVkX vk.ic inputs = vkX vk inputs := by
-  simp only [vkX, computeVkX]
-  cases h : vk.ic with
-  | nil  => simp
-  | cons ic0 rest =>
-    simp only []
-    rw [foldl_zip_smul_eq]
 
 end Groth16Verifier.Impl
