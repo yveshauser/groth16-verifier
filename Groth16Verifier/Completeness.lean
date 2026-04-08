@@ -57,8 +57,8 @@ theorem verifyGroth16_complete
     (h_r1cs  : R1CS inputs witness)
     (h_wf    : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk (Prove vk witness inputs) inputs = true := by
-  rw [verifyGroth16_correct]
-  exact groth16_prover_correct Prove pd R1CS vk inputs witness h_r1cs h_wf
+  exact (verifyGroth16_correct pd vk (Prove vk witness inputs) inputs h_wf).mpr
+    (groth16_prover_correct Prove pd R1CS vk inputs witness h_r1cs h_wf)
 
 -- ── No False Negatives ────────────────────────────────────────────────────────
 

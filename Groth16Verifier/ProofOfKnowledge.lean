@@ -73,8 +73,13 @@ theorem groth16_is_proof_of_knowledge
     then (agm_knowledge_extractor R1CS pd vk π x h).choose
     else []
   intro π x h_acc
+  -- Derive well-formedness: if the guard had fired, verifyGroth16 = false ≠ true
+  have h_wf : wellFormed Fr G1 G2 vk x := by
+    simp only [wellFormed]
+    by_contra h_ne
+    simp [verifyGroth16, h_ne] at h_acc
   have h_valid : Groth16Valid pd vk π x :=
-    (verifyGroth16_correct pd vk π x).mp h_acc
+    (verifyGroth16_correct pd vk π x h_wf).mp h_acc
   simp only [dif_pos h_valid]
   exact (agm_knowledge_extractor R1CS pd vk π x h_valid).choose_spec
 

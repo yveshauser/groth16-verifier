@@ -64,7 +64,7 @@ theorem verifyGroth16_sound
     (h_acc   : verifyGroth16 pd vk proof inputs = true) :
     ∃ witness : List Fr, R1CS inputs witness := by
   -- Convert the Bool result to the mathematical predicate (Correctness theorem)
-  rw [verifyGroth16_correct] at h_acc
+  replace h_acc := (verifyGroth16_correct pd vk proof inputs h_wf).mp h_acc
   -- Apply the AGM knowledge extractor
   exact agm_knowledge_extractor R1CS pd vk proof inputs h_acc
 

@@ -97,47 +97,27 @@ lemma groth16Valid_requires_wellFormed
 
 /-- The verifier returns `true` iff the Groth16 equation holds.
 
-    Proof:
-    1. The length guard fires on ill-formed inputs → verifier returns false.
-       By `groth16Valid_requires_wellFormed`, the equation also cannot hold.
-    2. For well-formed inputs, `computeVkX = vkX` (by `computeVkX_eq_vkX_vk`).
-    3. `decide (lhs = 1) = true` ↔ `lhs = 1` (by `decide_eq_true_eq`).
-    4. `lhs = 1` ↔ the pairing equation holds (by `groth16Valid_iff_neg`).
+    Requires a well-formed VK (`ic.length = inputs.length + 1`), which is
+    always satisfied in deployment (the VK is hardcoded for a specific circuit).
+
+    Proof: `h_wf` makes the length guard vacuously false, so the `if` collapses
+    to the else branch. Then:
+    1. `computeVkX = vkX` (by `computeVkX_eq_vkX_vk`).
+    2. `decide (lhs = 1) = true` ↔ `lhs = 1` (by `decide_eq_true_eq`).
+    3. `lhs = 1` ↔ the pairing equation holds (by `groth16Valid_iff_neg`).
 -/
 theorem verifyGroth16_correct
     (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
-    (inputs : List Fr) :
+    (inputs : List Fr)
+    (h_wf   : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk proof inputs = true
     ↔ Groth16Valid pd vk proof inputs := by
-  simp only [verifyGroth16]
-  by_cases h_len : vk.ic.length ≠ inputs.length + 1
-  · -- ── Ill-formed case ──────────────────────────────────────────────────────
-    -- Verifier returns false; the equation cannot hold either.
-    simp only [if_pos h_len]
-    constructor
-    · intro h; exact absurd h (by decide)
-    · intro h_valid
-      -- The equation cannot hold for a malformed VK.
-      -- We use the fact that a proof.A = 0 means the proof is trivially invalid,
-      -- and the SRS-binding argument handles the non-trivial case.
-      -- For the purposes of this formalisation, we note:
-      --   ∀ vk with ill-formed ic, ∀ inputs, ¬ Groth16Valid
-      -- is the statement that should follow from trusted-setup binding.
-      -- We admit this direction here; it does not affect soundness (§7)
-      -- because soundness goes the OTHER way: accept → valid.
-      admit
-  · -- ── Well-formed case ─────────────────────────────────────────────────────
-    push_neg at h_len
-    simp only [h_len, ne_eq, not_true, not_false_eq_true, ite_false]
-    -- Replace the foldl-based computeVkX with the sum-based vkX
-    rw [computeVkX_eq_vkX_vk]
-    -- `decide P = true ↔ P` for a decidable P
-    rw [decide_eq_true_eq]
-    -- The negated-form = 1 iff the standard Groth16 equation holds
-    rw [groth16Valid_iff_neg pd vk proof inputs]
-    simp [Groth16ValidNeg, mul_assoc]
+  simp only [wellFormed] at h_wf
+  simp only [verifyGroth16, if_neg (not_ne_iff.mpr h_wf)]
+  rw [computeVkX_eq_vkX_vk, decide_eq_true_eq, groth16Valid_iff_neg]
+  simp [Groth16ValidNeg, mul_assoc]
 
 -- ── Corollaries ───────────────────────────────────────────────────────────────
 
@@ -146,11 +126,11 @@ theorem verifyGroth16_false_iff
     (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
-    (inputs : List Fr) :
+    (inputs : List Fr)
+    (h_wf   : wellFormed Fr G1 G2 vk inputs) :
     verifyGroth16 pd vk proof inputs = false
     ↔ ¬ Groth16Valid pd vk proof inputs := by
-  rw [← Bool.not_eq_true]
-  simp [verifyGroth16_correct]
+  rw [← Bool.not_eq_true, verifyGroth16_correct pd vk proof inputs h_wf]
 
 /-- The verifier is deterministic: same inputs always give same output -/
 theorem verifyGroth16_deterministic
