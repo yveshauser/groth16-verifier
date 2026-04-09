@@ -57,19 +57,6 @@ private lemma foldl_zip_smul_eq
 -- vkX uses List.zipWith + sum (clean for proofs)
 -- computeVkX uses List.foldl  (mirrors the Aiken contract)
 
-lemma computeVkX_eq_vkX
-    (ic     : List G1)
-    (inputs : List Fr) :
-    computeVkX ic inputs = vkX (G2 := G2)
-      { alpha := (0:G1), beta := (0:G2), gamma := 0, delta := 0, ic := ic }
-      inputs := by
-  simp [computeVkX, vkX]
-  cases ic with
-  | nil  => simp
-  | cons ic0 rest =>
-    simp
-    rw [foldl_zip_smul_eq]
-
 /-- The main form we use in the Correctness proof. -/
 lemma computeVkX_eq_vkX_vk
     (vk     : VerifyingKey G1 G2)
@@ -77,7 +64,7 @@ lemma computeVkX_eq_vkX_vk
     computeVkX vk.ic inputs = vkX vk inputs := by
   simp only [vkX, computeVkX]
   cases h : vk.ic with
-  | nil  => simp
+  | nil  => exact absurd h vk.h_ic0
   | cons ic0 rest =>
     simp only []
     rw [foldl_zip_smul_eq]

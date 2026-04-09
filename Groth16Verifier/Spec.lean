@@ -38,24 +38,10 @@ def vkX (vk : VerifyingKey G1 G2) (inputs : List Fr) : G1 :=
 
 -- ── Lemmas about vkX ─────────────────────────────────────────────────────────
 
-@[simp]
-lemma vkX_empty_ic (inputs : List Fr) :
-    vkX (G2 := G2) { alpha := (0:G1), beta := (0:G2), gamma := 0,
-                     delta := 0, ic := [] } inputs = 0 := by
-  simp [vkX]
-
 lemma vkX_nil_inputs (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
     (h : vk.ic = ic0 :: rest) :
     vkX vk ([] : List Fr) = ic0 := by
   simp [vkX, h, List.zipWith_nil_left]
-
-lemma vkX_cons (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
-    (x : Fr) (xs : List Fr) (h : vk.ic = ic0 :: rest) :
-    vkX vk (x :: xs) =
-      ic0 + x • (rest.head?.getD 0) + vkX { vk with ic := (0 :: rest.tail) } xs := by
-  cases rest with
-  | nil        => simp [vkX, h, smul_zero]
-  | cons r0 rest' => simp [vkX, h]; abel
 
 -- ── The Groth16 Verification Predicate ───────────────────────────────────────
 
