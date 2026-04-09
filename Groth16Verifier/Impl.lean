@@ -23,7 +23,7 @@ variable (pd : PairingData Fr G1 G2 GT)
 -- implementation exactly.
 
 def computeVkX (ic : List G1) (h_ic0 : ic ≠ []) (inputs : List Fr) : G1 :=
-  let ic0 := head ic h_ic0
+  let ic0  := head ic h_ic0
   let rest := tail ic
   foldl (fun acc pair => acc + pair.1 • pair.2) ic0 (zip inputs rest)
 

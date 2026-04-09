@@ -15,7 +15,7 @@ import Mathlib.Tactic.Abel
 
 namespace Groth16Verifier.Spec
 
-open Groth16Verifier.Algebra Groth16Verifier.Types
+open List Groth16Verifier.Algebra Groth16Verifier.Types
 open scoped BigOperators
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
@@ -31,14 +31,9 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 -- included in a pairing check.
 
 def vkX (vk : VerifyingKey G1 G2) (inputs : List Fr) : G1 :=
-  vk.ic.head vk.h_ic0 + (List.zipWith (· • ·) inputs vk.ic.tail).sum
-
--- ── Lemmas about vkX ─────────────────────────────────────────────────────────
-
-lemma vkX_nil_inputs (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
-    (h : vk.ic = ic0 :: rest) :
-    vkX vk ([] : List Fr) = ic0 := by
-  simp [vkX, List.head_cons, h]
+  let ic0  := head vk.ic vk.h_ic0
+  let rest := tail vk.ic
+  ic0 + (zipWith (· • ·) inputs rest).sum
 
 -- ── The Groth16 Verification Predicate ───────────────────────────────────────
 

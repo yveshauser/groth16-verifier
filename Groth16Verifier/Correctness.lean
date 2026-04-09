@@ -3,10 +3,10 @@
 -- CORRECTNESS THEOREM
 --
 -- The verifier is "correct": it returns `true` if and only if the
--- Groth16 pairing equation holds.
+-- Groth16 pairing equation holds, assuming a well-formed verifying key.
 --
 --   verifyGroth16 pd vk proof inputs = true
---   ↔  Groth16Valid pd vk proof inputs
+--   ↔  Groth16Valid pd vk proof inputs    (given: wellFormed vk inputs)
 --
 -- This is a purely functional correctness property requiring no
 -- cryptographic hardness assumptions — only the algebraic properties
@@ -20,7 +20,7 @@ import Groth16Verifier.Spec
 
 namespace Groth16Verifier.Correctness
 
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
+open List Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -28,41 +28,35 @@ variable {G2 : Type*} [AddCommGroup G2] [Module Fr G2]
 variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 
 -- ── foldl / zipWith equivalence ──────────────────────────────────────────────
---
--- `List.foldl_zip_eq_sum_zipWith` is not in Mathlib under that name, so we
--- prove what we need directly.  The key identity is:
---
---   List.foldl (fun acc (s, P) => acc + s • P) init (xs.zip Ps)
---   = init + (List.zipWith (· • ·) xs Ps).sum
 
-/-- Core foldl-over-zip identity.
+/-- Generic foldl-over-zip identity: folding a binary operation over zipped lists
+    equals the initial value plus the sum of zipWith applied to the lists.
     Proved by induction; the accumulator absorbs the initial value. -/
-private lemma foldl_zip_smul_eq
-    {α : Type*} [AddCommGroup α] [Module Fr α]
-    (init : α) (xs : List Fr) (Ps : List α) :
-    List.foldl (fun acc pair => acc + pair.1 • pair.2) init (xs.zip Ps)
-    = init + (List.zipWith (· • ·) xs Ps).sum := by
-  induction xs generalizing init Ps with
+private lemma foldl_zip_eq
+    {α β γ : Type*} [AddCommMonoid γ]
+    (f : α → β → γ) (a₀ : γ) (xs : List α) (ys : List β) :
+    foldl (fun acc pair => acc + f pair.1 pair.2) a₀ (zip xs ys)
+    = a₀ + (zipWith f xs ys).sum := by
+  induction xs generalizing a₀ ys with
   | nil => simp
   | cons x xs ih =>
-    cases Ps with
+    cases ys with
     | nil => simp
-    | cons P Ps =>
-      simp [List.zipWith]
-      rw [ih (init + x • P)]
-      -- init + x•P + Σ(zipWith) = init + (x•P + Σ(zipWith))
+    | cons y ys =>
+      simp [zipWith]
+      rw [ih (a₀ + f x y)]
       abel
 
 -- ── Equivalence: computeVkX = vkX ────────────────────────────────────────────
--- vkX uses List.zipWith + sum (clean for proofs)
--- computeVkX uses List.foldl  (mirrors the Aiken contract)
+-- vkX uses List.head + zipWith + sum (clean for proofs)
+-- computeVkX uses List.head + List.foldl  (mirrors the Aiken contract)
 
 /-- The main form we use in the Correctness proof. -/
 lemma computeVkX_eq_vkX_vk
     (vk     : VerifyingKey G1 G2)
     (inputs : List Fr) :
     computeVkX vk.ic vk.h_ic0 inputs = vkX vk inputs := by
-  simp [vkX, computeVkX, foldl_zip_smul_eq]
+  simp [vkX, computeVkX, foldl_zip_eq]
 
 -- ── Main Correctness Theorem ──────────────────────────────────────────────────
 
