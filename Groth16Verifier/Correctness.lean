@@ -61,13 +61,8 @@ private lemma foldl_zip_smul_eq
 lemma computeVkX_eq_vkX_vk
     (vk     : VerifyingKey G1 G2)
     (inputs : List Fr) :
-    computeVkX vk.ic inputs = vkX vk inputs := by
-  simp only [vkX, computeVkX]
-  cases h : vk.ic with
-  | nil  => exact absurd h vk.h_ic0
-  | cons ic0 rest =>
-    simp only []
-    rw [foldl_zip_smul_eq]
+    computeVkX vk.ic vk.h_ic0 inputs = vkX vk inputs := by
+  simp [vkX, computeVkX, foldl_zip_smul_eq]
 
 -- ── Main Correctness Theorem ──────────────────────────────────────────────────
 

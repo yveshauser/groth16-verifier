@@ -22,14 +22,11 @@ variable (pd : PairingData Fr G1 G2 GT)
 -- Uses List.foldl over zipped (input, ic_point) pairs — matching the Aiken
 -- implementation exactly.
 
-def computeVkX (ic : List G1) (inputs : List Fr) : G1 :=
-  match ic with
-  | []          => 0
-  | ic0 :: rest =>
-    List.foldl
-      (fun acc pair => acc + pair.1 • pair.2)
-      ic0
-      (inputs.zip rest)
+def computeVkX (ic : List G1) (h : ic ≠ []) (inputs : List Fr) : G1 :=
+  List.foldl
+    (fun acc pair => acc + pair.1 • pair.2)
+    (ic.head h)
+    (inputs.zip ic.tail)
 
 -- ── verifyGroth16 ─────────────────────────────────────────────────────────────
 -- Mirrors the Aiken `verify_groth16` function exactly.
@@ -42,7 +39,7 @@ def verifyGroth16
   if vk.ic.length ≠ inputs.length + 1 then false
   else
     -- Compute vk_x = IC[0] + Σ inputᵢ · ICᵢ₊₁
-    let vk_x  := computeVkX vk.ic inputs
+    let vk_x  := computeVkX vk.ic vk.h_ic0 inputs
     -- Negate A for the additive form of the check
     let neg_a := -proof.A
     -- Compute product of all four Miller loops in GT

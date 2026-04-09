@@ -31,17 +31,14 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 -- included in a pairing check.
 
 def vkX (vk : VerifyingKey G1 G2) (inputs : List Fr) : G1 :=
-  match vk.ic with
-  | []          => 0
-  | ic0 :: rest =>
-    ic0 + (List.zipWith (· • ·) inputs rest).sum
+  vk.ic.head vk.h_ic0 + (List.zipWith (· • ·) inputs vk.ic.tail).sum
 
 -- ── Lemmas about vkX ─────────────────────────────────────────────────────────
 
 lemma vkX_nil_inputs (vk : VerifyingKey G1 G2) (ic0 : G1) (rest : List G1)
     (h : vk.ic = ic0 :: rest) :
     vkX vk ([] : List Fr) = ic0 := by
-  simp [vkX, h, List.zipWith_nil_left]
+  simp [vkX, List.head_cons, h]
 
 -- ── The Groth16 Verification Predicate ───────────────────────────────────────
 
