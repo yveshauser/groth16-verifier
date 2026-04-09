@@ -9,7 +9,7 @@ import Groth16Verifier.Types
 
 namespace Groth16Verifier.Impl
 
-open Groth16Verifier.Algebra Groth16Verifier.Types
+open List Groth16Verifier.Algebra Groth16Verifier.Types
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -22,11 +22,10 @@ variable (pd : PairingData Fr G1 G2 GT)
 -- Uses List.foldl over zipped (input, ic_point) pairs — matching the Aiken
 -- implementation exactly.
 
-def computeVkX (ic : List G1) (h : ic ≠ []) (inputs : List Fr) : G1 :=
-  List.foldl
-    (fun acc pair => acc + pair.1 • pair.2)
-    (ic.head h)
-    (inputs.zip ic.tail)
+def computeVkX (ic : List G1) (h_ic0 : ic ≠ []) (inputs : List Fr) : G1 :=
+  let ic0 := head ic h_ic0
+  let rest := tail ic
+  foldl (fun acc pair => acc + pair.1 • pair.2) ic0 (zip inputs rest)
 
 -- ── verifyGroth16 ─────────────────────────────────────────────────────────────
 -- Mirrors the Aiken `verify_groth16` function exactly.
@@ -36,7 +35,7 @@ def verifyGroth16
     (proof  : Proof G1 G2)
     (inputs : List Fr) : Bool :=
   -- Guard: IC must have exactly (n_inputs + 1) elements
-  if vk.ic.length ≠ inputs.length + 1 then false
+  if length vk.ic ≠ length inputs + 1 then false
   else
     -- Compute vk_x = IC[0] + Σ inputᵢ · ICᵢ₊₁
     let vk_x  := computeVkX vk.ic vk.h_ic0 inputs
