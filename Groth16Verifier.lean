@@ -1,8 +1,8 @@
 import Groth16Verifier.Algebra
-import Groth16Verifier.Correctness
 import Groth16Verifier.Impl
 import Groth16Verifier.Spec
 import Groth16Verifier.Types
-import Groth16Verifier.Completeness
-import Groth16Verifier.Soundness
-import Groth16Verifier.ZeroKnowledge
+import Groth16Verifier.Properties.Correctness
+import Groth16Verifier.Properties.Completeness
+import Groth16Verifier.Properties.Soundness
+import Groth16Verifier.Properties.ZeroKnowledge

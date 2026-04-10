@@ -7,10 +7,6 @@ Aiken smart contract on Cardano correctly implements the Groth16 verification
 equation — and that it is sound, complete, and zero-knowledge — using Lean 4
 and Mathlib as the proof foundation.
 
-Inspired by Firsov & Livshits,
-[*The Ouroboros of ZK*](https://eprint.iacr.org/2024/768) (ePrint 2024/768),
-and the production verification of ZKSync's PLONK verifier by Nethermind.
-
 ---
 
 ## Background
@@ -39,10 +35,8 @@ Transaction accepted / rejected
 ### Why verify the verifier?
 
 The Aiken contract is the security-critical component: if it has a bug, a
-cheating prover could unlock funds without a valid proof. Unlike the circuit
-(which can be tested with snarkjs), the on-chain verifier is a Plutus script
-that must be correct by construction — there is no runtime exception, just
-a wrong `True` or `False`.
+cheating prover could unlock funds without a valid proof. The on-chain
+verifier is a Plutus script that must be correct by construction.
 
 Formal verification gives a machine-checked guarantee that the contract
 computes exactly the Groth16 pairing equation, with no shortcuts, no
@@ -57,7 +51,7 @@ The library establishes four properties of `verify_groth16` in
 
 | # | Theorem | Statement | File | Proof status |
 |---|---|---|---|---|
-| 1 | **Correctness** | `verifyGroth16 pd vk proof inputs = true ↔ Groth16Valid pd vk proof inputs` | `Correctness.lean` | ✓ Proved (2 admits for ill-formed IC — see below) |
+| 1 | **Correctness** | `verifyGroth16 pd vk proof inputs = true ↔ Groth16Valid pd vk proof inputs` | `Correctness.lean` | ✓ Proved (given `wellFormed vk inputs`) |
 | 2 | **Completeness** | An honest prover with a valid witness is always accepted | `Completeness.lean` | ✓ Proved, modulo `groth16_prover_correct` axiom |
 | 3 | **Soundness** | A cheating prover cannot be accepted | `Soundness.lean` | ✓ Proved, modulo `agm_knowledge_extractor` axiom |
 | 4 | **Zero-Knowledge** | Proof reveals nothing about the witness | `ZeroKnowledge.lean` | ✓ Proved, modulo `groth16_perfect_zk` axiom |
@@ -100,10 +94,11 @@ groth16-verifier/
     ├── Spec.lean               Mathematical spec: vkX, Groth16Valid, Groth16ValidNeg
     ├── Impl.lean               Lean transliteration of groth16_verifier.ak
     │                           (computeVkX, verifyGroth16, foldl/zipWith equivalence)
-    ├── Correctness.lean        ★ verifyGroth16 = true ↔ Groth16Valid
-    ├── Completeness.lean       Honest prover always accepted
-    ├── Soundness.lean          Cheating prover rejected (under AGM)
-    └── ZeroKnowledge.lean      Witness indistinguishability
+    └── Properties/
+        ├── Correctness.lean    ★ verifyGroth16 = true ↔ Groth16Valid
+        ├── Completeness.lean   Honest prover always accepted
+        ├── Soundness.lean      Cheating prover rejected (under AGM)
+        └── ZeroKnowledge.lean  Witness indistinguishability
 ```
 
 ### Correspondence with the Aiken contract
@@ -179,9 +174,9 @@ These lemmas have no remaining gaps:
 - `Algebra.multipairing_eq_one_iff` — the central algebraic identity
 - `Algebra.pairing_sum_left` — bilinearity over a list sum
 - `Spec.groth16Valid_iff_neg` — equivalence of the two verification forms
-- `Impl.foldl_zip_smul_eq` — `foldl` over `zip` equals `zipWith` sum
-- `Impl.computeVkX_eq_vkX_vk` — implementation matches spec
-- `Correctness.verifyGroth16_correct` (well-formed case) — the main theorem
+- `Correctness.foldl_zip_eq` — `foldl` over `zip` equals `zipWith` sum (generic)
+- `Correctness.computeVkX_eq_vkX_vk` — implementation matches spec
+- `Correctness.verifyGroth16_correct` — the main theorem (given `wellFormed`)
 - `Correctness.verifyGroth16_false_iff` — false iff equation does not hold
 - `Completeness.verifyGroth16_complete` — honest prover accepted
 - `Completeness.verifyGroth16_no_false_negatives`
@@ -192,18 +187,11 @@ These lemmas have no remaining gaps:
 
 ### Remaining admits
 
-Two `admit`s remain in `Correctness.lean`, both in the ill-formed input
-case — when `vk.ic.length ≠ inputs.length + 1`. These cover the backward
-direction: showing `¬ Groth16Valid` when the IC list is the wrong length.
-
-**What is needed:** a proof that IC points from an honest trusted setup
-are linearly independent over `Fr`, so a truncated linear combination
-cannot satisfy the pairing equation. See `CONTRIBUTING.md` for the
-suggested approach using Mathlib's `LinearIndependent` API.
-
-These admits are in the direction `Groth16Valid → verifyGroth16 = true`
-only for ill-formed VKs. They do **not** affect the soundness theorem
-(§7), which goes the other way: `verifyGroth16 = true → valid witness`.
+There are no remaining `admit`s in `Correctness.lean`. The theorem
+`verifyGroth16_correct` is fully proved under the assumption
+`wellFormed Fr G1 G2 vk inputs` (i.e. `vk.ic.length = inputs.length + 1`),
+which reflects how the contract is actually deployed — the VK is
+hardcoded for a specific circuit with a fixed number of public inputs.
 
 ### Named axioms
 

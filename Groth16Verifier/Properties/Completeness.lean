@@ -9,7 +9,7 @@
 --   1. The Correctness theorem (verifier = true ↔ equation holds)
 --   2. The Groth16 completeness axiom (honest prover satisfies the equation)
 
-import Groth16Verifier.Correctness
+import Groth16Verifier.Properties.Correctness
 
 namespace Groth16Verifier.Completeness
 

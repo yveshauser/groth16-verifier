@@ -14,7 +14,7 @@
 --
 -- Reference: Groth 2016, Theorem 3; also Abdolmaleki et al 2017 (Sub-GBGM ZK).
 
-import Groth16Verifier.Soundness
+import Groth16Verifier.Properties.Soundness
 
 namespace Groth16Verifier.ZeroKnowledge
 

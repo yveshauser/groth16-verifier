@@ -13,7 +13,7 @@
 -- The AGM axiom here is what ArkLib aims to mechanise formally.
 -- See: Groth 2016, Theorem 2; Fuchsbauer-Kiltz-Loss 2018 (AGM framework).
 
-import Groth16Verifier.Completeness
+import Groth16Verifier.Properties.Completeness
 
 namespace Groth16Verifier.Soundness
 
@@ -81,7 +81,6 @@ theorem verifyGroth16_no_false_positives
     (h_unsat : ∀ witness : List Fr, ¬ R1CS inputs witness) :
     verifyGroth16 pd vk proof inputs = false := by
   by_contra h_true
-  push_neg at h_true
   -- h_true : verifyGroth16 ... ≠ false; Bool is {true,false} so this means = true
   have h_acc : verifyGroth16 pd vk proof inputs = true := by
     rcases h : verifyGroth16 pd vk proof inputs with _ | _
