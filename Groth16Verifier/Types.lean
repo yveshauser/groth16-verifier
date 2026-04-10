@@ -29,7 +29,7 @@ structure VerifyingKey where
       IC[0] is constant; IC[i] corresponds to public_inputs[i-1].
       Length = number_of_public_inputs + 1 -/
   ic    : List G1
-  /-- There needs to be at least one element -/
+  /-- IC is non-empty: IC[0] (the constant term) always exists -/
   {h_ic0 : ic ≠ []}
 
 -- ── Proof ─────────────────────────────────────────────────────────────────────

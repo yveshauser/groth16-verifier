@@ -23,6 +23,8 @@ variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
 variable {G2 : Type*} [AddCommGroup G2] [Module Fr G2]
 variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 
+variable (pd : PairingData Fr G1 G2 GT)
+
 -- ── vk_x: the public-input commitment ────────────────────────────────────────
 --
 -- vk_x = IC[0] + x₁·IC[1] + x₂·IC[2] + ... + xₙ·IC[n]
@@ -39,7 +41,6 @@ def vkX (vk : VerifyingKey G1 G2) (inputs : List Fr) : G1 :=
 
 /-- A proof is valid if it satisfies the Groth16 pairing equation -/
 def Groth16Valid
-    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr) : Prop :=
@@ -49,7 +50,6 @@ def Groth16Valid
     pd.pairing proof.C vk.delta
 
 instance instDecidableGroth16Valid
-    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr) :
@@ -64,7 +64,6 @@ instance instDecidableGroth16Valid
 --   e(-A,B) · e(α,β) · e(vk_x,γ) · e(C,δ) = 1
 
 def Groth16ValidNeg
-    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr) : Prop :=
@@ -75,7 +74,6 @@ def Groth16ValidNeg
 
 /-- The two formulations are equivalent -/
 theorem groth16Valid_iff_neg
-    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr) :
