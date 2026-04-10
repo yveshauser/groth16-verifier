@@ -36,7 +36,7 @@ variable (Prove : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
 -- ArkLib mechanisation of Groth16 completeness once that is available.
 
 axiom groth16_prover_correct
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (R1CS    : R1CSRelation Fr)
     (vk      : VerifyingKey G1 G2)
     (inputs  : List Fr)
@@ -49,7 +49,7 @@ axiom groth16_prover_correct
 
 /-- An honest prover with a valid witness is always accepted by the verifier. -/
 theorem verifyGroth16_complete
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (R1CS    : R1CSRelation Fr)
     (vk      : VerifyingKey G1 G2)
     (inputs  : List Fr)
@@ -64,7 +64,7 @@ theorem verifyGroth16_complete
 
 /-- The verifier never rejects a correctly generated proof. -/
 lemma verifyGroth16_no_false_negatives
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (R1CS    : R1CSRelation Fr)
     (vk      : VerifyingKey G1 G2)
     (inputs  : List Fr)

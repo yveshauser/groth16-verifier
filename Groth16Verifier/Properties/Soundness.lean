@@ -43,7 +43,7 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 
 axiom agm_knowledge_extractor
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
@@ -56,7 +56,7 @@ axiom agm_knowledge_extractor
     Equivalently: the verifier cannot be convinced of a false statement. -/
 theorem verifyGroth16_sound
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
@@ -73,7 +73,7 @@ theorem verifyGroth16_sound
 /-- The verifier never accepts a proof for an unsatisfiable instance. -/
 theorem verifyGroth16_no_false_positives
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
@@ -96,7 +96,7 @@ theorem verifyGroth16_no_false_positives
 theorem verifyGroth16_iff_satisfiable
     (Prove   : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData Fr G1 G2 GT)
+    (pd      : PairingData G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (inputs  : List Fr)
     (h_wf    : wellFormed Fr G1 G2 vk inputs)

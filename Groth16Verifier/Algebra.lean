@@ -29,16 +29,12 @@ structure PairingData where
   /-- Bilinearity in the second argument -/
   bilin_right : ∀ (P : G1) (Q R : G2),
                   pairing P (Q + R) = pairing P Q * pairing P R
-  /-- Compatibility with scalar multiplication on the left -/
-  scalar_left : ∀ (s : Fr) (P : G1) (Q : G2) (n : ℕ),
-                  (r : ℤ) = n →
-                  pairing (s • P) Q = pairing P Q ^ n
   /-- Non-degeneracy: pairing of non-zero points is non-trivial -/
   nondegen    : ∀ (P : G1) (Q : G2), P ≠ 0 → Q ≠ 0 → pairing P Q ≠ 1
 
 -- ── Key derived lemmas ────────────────────────────────────────────────────────
 
-variable {Fr G1 G2 GT} (pd : PairingData Fr G1 G2 GT)
+variable {Fr G1 G2 GT} (pd : PairingData G1 G2 GT)
 
 /-- Pairing of the zero element on the left gives 1 in GT.
     Proof: e(0, Q) = e(0+0, Q) = e(0,Q)·e(0,Q), so e(0,Q) = 1 by cancellation. -/
