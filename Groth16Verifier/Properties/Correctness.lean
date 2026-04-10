@@ -1,4 +1,4 @@
--- Groth16Verifier.Correctness
+-- Groth16Verifier.Properties.Correctness
 --
 -- CORRECTNESS THEOREM
 --
@@ -18,7 +18,7 @@
 import Groth16Verifier.Impl
 import Groth16Verifier.Spec
 
-namespace Groth16Verifier.Correctness
+namespace Groth16Verifier.Properties.Correctness
 
 open List Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
 
@@ -101,4 +101,4 @@ theorem verifyGroth16_false_iff
   rw [← Bool.not_eq_true]
   simp [verifyGroth16_correct pd vk proof inputs h_wf]
 
-end Groth16Verifier.Correctness
+end Groth16Verifier.Properties.Correctness

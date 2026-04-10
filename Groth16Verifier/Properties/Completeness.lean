@@ -1,4 +1,4 @@
--- Groth16Verifier.Completeness
+-- Groth16Verifier.Properties.Completeness
 --
 -- COMPLETENESS THEOREM
 --
@@ -11,9 +11,9 @@
 
 import Groth16Verifier.Properties.Correctness
 
-namespace Groth16Verifier.Completeness
+namespace Groth16Verifier.Properties.Completeness
 
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Properties.Correctness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -74,4 +74,4 @@ lemma verifyGroth16_no_false_negatives
     ¬ (verifyGroth16 pd vk (Prove vk witness inputs) inputs = false) := by
   simp [verifyGroth16_complete Prove pd R1CS vk inputs witness h_r1cs h_wf]
 
-end Groth16Verifier.Completeness
+end Groth16Verifier.Properties.Completeness

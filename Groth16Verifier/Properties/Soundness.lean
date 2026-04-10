@@ -1,4 +1,4 @@
--- Groth16Verifier.Soundness
+-- Groth16Verifier.Properties.Soundness
 --
 -- SOUNDNESS THEOREM
 --
@@ -15,10 +15,10 @@
 
 import Groth16Verifier.Properties.Completeness
 
-namespace Groth16Verifier.Soundness
+namespace Groth16Verifier.Properties.Soundness
 
 open Groth16Verifier
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Properties.Correctness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -113,4 +113,4 @@ theorem verifyGroth16_iff_satisfiable
     exact Completeness.verifyGroth16_complete
       Prove pd R1CS vk inputs witness h_r1cs h_wf
 
-end Groth16Verifier.Soundness
+end Groth16Verifier.Properties.Soundness

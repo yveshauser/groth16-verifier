@@ -1,4 +1,4 @@
--- Groth16Verifier.ZeroKnowledge
+-- Groth16Verifier.Properties.ZeroKnowledge
 --
 -- ZERO-KNOWLEDGE PROPERTY
 --
@@ -16,10 +16,10 @@
 
 import Groth16Verifier.Properties.Soundness
 
-namespace Groth16Verifier.ZeroKnowledge
+namespace Groth16Verifier.Properties.ZeroKnowledge
 
 open Groth16Verifier
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Correctness Groth16Verifier.Soundness
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Properties.Correctness Groth16Verifier.Properties.Soundness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -101,4 +101,4 @@ theorem witness_indistinguishable
   rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₁ h_r1cs₁]
   rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₂ h_r1cs₂]
 
-end Groth16Verifier.ZeroKnowledge
+end Groth16Verifier.Properties.ZeroKnowledge
