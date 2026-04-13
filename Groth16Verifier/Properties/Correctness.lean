@@ -70,7 +70,7 @@ lemma computeVkX_eq_vkX_vk
     4. `lhs = 1` ↔ the pairing equation holds (by `groth16Valid_iff_neg`).
 -/
 theorem verifyGroth16_correct
-    (pd     : PairingData G1 G2 GT)
+    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr)
@@ -91,7 +91,7 @@ theorem verifyGroth16_correct
 
 /-- The verifier returns `false` iff the equation does NOT hold -/
 theorem verifyGroth16_false_iff
-    (pd     : PairingData G1 G2 GT)
+    (pd     : PairingData Fr G1 G2 GT)
     (vk     : VerifyingKey G1 G2)
     (proof  : Proof G1 G2)
     (inputs : List Fr)
