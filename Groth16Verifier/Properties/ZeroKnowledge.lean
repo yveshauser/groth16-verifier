@@ -19,7 +19,9 @@ import Groth16Verifier.Properties.Soundness
 namespace Groth16Verifier.Properties.ZeroKnowledge
 
 open Groth16Verifier
-open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl Groth16Verifier.Properties.Correctness Groth16Verifier.Properties.Soundness
+open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
+     Groth16Verifier.Properties.Correctness Groth16Verifier.Properties.Soundness
+     Groth16Verifier.Properties.CompletenessProver
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -41,25 +43,28 @@ variable (Sim : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
 
 -- ── Perfect ZK Axiom ─────────────────────────────────────────────────────────
 --
--- The simulator's output is distributed identically to the honest prover's output.
--- "Perfect" ZK means the distributions are exactly equal (not just computationally
--- indistinguishable). Groth16 achieves perfect ZK.
+-- The honest prover's output is distributed identically to the simulator's.
+-- "Perfect" ZK means the distributions are exactly equal (not just
+-- computationally indistinguishable). Groth16 achieves perfect ZK.
+--
+-- Here we model it as equality of the concrete honest prover output and the
+-- simulator output on valid instances, for any choice of prover randomness r, s.
 --
 -- In a full mechanisation this would be stated over a probability monad.
--- Here we model it as equality of proof-producing functions on valid instances.
 
 axiom groth16_perfect_zk
     (td      : Trapdoor)
-    (Prove   : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData G1 G2 GT)
-    (vk      : VerifyingKey G1 G2)
+    (crs     : CRS Fr)
+    (qap     : QAPEval Fr)
+    (g1      : G1) (g2 : G2)
     (inputs  : List Fr)
     (witness : List Fr)
+    (r s     : Fr)
     (h_r1cs  : R1CS inputs witness) :
-    -- The real proof and the simulated proof are identical
-    -- (as distributions; here modelled as equal values for a fixed randomness)
-    Prove vk witness inputs = Sim td vk inputs
+    -- The honest prover's output equals the simulator's output
+    honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s
+    = Sim td (mkVk g1 g2 crs qap inputs.length) inputs
 
 -- ── Corollary: Simulated Proofs Verify ────────────────────────────────────────
 
@@ -68,37 +73,44 @@ axiom groth16_perfect_zk
     since sim(τ, x) = prove(x, w) and prove(x, w) verifies, sim verifies too. -/
 theorem simulated_proof_verifies
     (td      : Trapdoor)
-    (Prove   : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
     (R1CS    : R1CSRelation Fr)
-    (pd      : PairingData G1 G2 GT)
-    (vk      : VerifyingKey G1 G2)
+    (pd      : PairingData Fr G1 G2 GT)
+    (crs     : CRS Fr)
+    (qap     : QAPEval Fr)
+    (g1      : G1) (g2 : G2)
     (inputs  : List Fr)
     (witness : List Fr)
+    (r s     : Fr)
     (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed Fr G1 G2 vk inputs) :
-    verifyGroth16 pd vk (Sim td vk inputs) inputs = true := by
-  rw [← groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness h_r1cs]
-  exact Completeness.verifyGroth16_complete Prove pd R1CS vk inputs witness h_r1cs h_wf
+    (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
+    verifyGroth16 pd
+      (mkVk g1 g2 crs qap inputs.length)
+      (Sim td (mkVk g1 g2 crs qap inputs.length) inputs)
+      inputs = true := by
+  rw [← groth16_perfect_zk Trapdoor Sim td R1CS crs qap g1 g2 inputs witness r s h_r1cs]
+  exact Completeness.verifyGroth16_complete pd R1CS crs qap g1 g2 inputs witness r s h_r1cs h_wf
 
 -- ── Witness Indistinguishability ──────────────────────────────────────────────
 
-omit [DecidableEq Fr] [Module Fr G2] [DecidableEq GT] in
 /-- Proofs for the same statement with different witnesses are indistinguishable.
     Follows from: both equal the simulator's output (by ZK). -/
 theorem witness_indistinguishable
     (td       : Trapdoor)
-    (Sim      : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
-    (Prove    : VerifyingKey G1 G2 → List Fr → List Fr → Proof G1 G2)
+    (Sim'     : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
     (R1CS     : R1CSRelation Fr)
-    (pd       : PairingData G1 G2 GT)
-    (vk       : VerifyingKey G1 G2)
+    (crs      : CRS Fr)
+    (qap      : QAPEval Fr)
+    (g1       : G1) (g2 : G2)
     (inputs   : List Fr)
     (witness₁ : List Fr)
     (witness₂ : List Fr)
+    (r₁ s₁    : Fr)
+    (r₂ s₂    : Fr)
     (h_r1cs₁  : R1CS inputs witness₁)
     (h_r1cs₂  : R1CS inputs witness₂) :
-    Prove vk witness₁ inputs = Prove vk witness₂ inputs := by
-  rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₁ h_r1cs₁]
-  rw [groth16_perfect_zk Trapdoor Sim td Prove R1CS pd vk inputs witness₂ h_r1cs₂]
+    honestProver g1 g2 crs qap (inputs ++ witness₁) inputs.length r₁ s₁
+    = honestProver g1 g2 crs qap (inputs ++ witness₂) inputs.length r₂ s₂ := by
+  rw [groth16_perfect_zk Trapdoor Sim' td R1CS crs qap g1 g2 inputs witness₁ r₁ s₁ h_r1cs₁,
+      groth16_perfect_zk Trapdoor Sim' td R1CS crs qap g1 g2 inputs witness₂ r₂ s₂ h_r1cs₂]
 
 end Groth16Verifier.Properties.ZeroKnowledge

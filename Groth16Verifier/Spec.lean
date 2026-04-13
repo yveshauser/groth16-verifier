@@ -23,7 +23,7 @@ variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
 variable {G2 : Type*} [AddCommGroup G2] [Module Fr G2]
 variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 
-variable (pd : PairingData G1 G2 GT)
+variable (pd : PairingData Fr G1 G2 GT)
 
 -- ── vk_x: the public-input commitment ────────────────────────────────────────
 --
