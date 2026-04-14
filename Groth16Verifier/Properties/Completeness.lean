@@ -2,13 +2,13 @@
 --
 -- COMPLETENESS THEOREM
 --
--- If an honest prover has a valid witness for a satisfied R1CS instance,
+-- If an honest prover has a witness satisfying the QAP,
 -- their proof will always be accepted by the verifier.
 --
 -- This follows directly from:
 --   1. The Correctness theorem (verifier = true ↔ equation holds)
 --   2. The concrete proof in CompletenessProver that the honest prover's
---      output satisfies the pairing equation (modulo two named sorries)
+--      output satisfies the pairing equation (modulo one named sorry)
 
 import Groth16Verifier.Properties.CompletenessProver
 
@@ -24,10 +24,9 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 
 -- ── Completeness Theorem ──────────────────────────────────────────────────────
 
-/-- An honest prover with a valid witness is always accepted by the verifier. -/
+/-- An honest prover with a QAP-satisfying witness is always accepted by the verifier. -/
 theorem verifyGroth16_complete
     (pd      : PairingData Fr G1 G2 GT)
-    (R1CS    : R1CSRelation Fr)
     (crs     : CRS Fr)
     (qap     : QAPEval Fr)
     (g1      : G1)
@@ -35,20 +34,19 @@ theorem verifyGroth16_complete
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness)
+    (h_qap   : QAPSat qap (inputs ++ witness))
     (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
     verifyGroth16 pd
       (mkVk g1 g2 crs qap inputs.length)
       (honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s)
       inputs = true :=
-  concrete_prover_correct g1 g2 pd crs R1CS qap inputs witness r s h_r1cs h_wf
+  concrete_prover_correct g1 g2 pd crs qap inputs witness r s h_qap h_wf
 
 -- ── No False Negatives ────────────────────────────────────────────────────────
 
 /-- The verifier never rejects a correctly generated proof. -/
 lemma verifyGroth16_no_false_negatives
     (pd      : PairingData Fr G1 G2 GT)
-    (R1CS    : R1CSRelation Fr)
     (crs     : CRS Fr)
     (qap     : QAPEval Fr)
     (g1      : G1)
@@ -56,12 +54,12 @@ lemma verifyGroth16_no_false_negatives
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness)
+    (h_qap   : QAPSat qap (inputs ++ witness))
     (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
     ¬ (verifyGroth16 pd
         (mkVk g1 g2 crs qap inputs.length)
         (honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s)
         inputs = false) := by
-  simp [verifyGroth16_complete pd R1CS crs qap g1 g2 inputs witness r s h_r1cs h_wf]
+  simp [verifyGroth16_complete pd crs qap g1 g2 inputs witness r s h_qap h_wf]
 
 end Groth16Verifier.Properties.Completeness

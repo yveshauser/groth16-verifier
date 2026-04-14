@@ -90,7 +90,7 @@ groth16-verifier/
 └── Groth16Verifier/
     ├── Algebra.lean            Abstract BLS12-381 pairing groups + derived lemmas
     │                           (bilinearity, pairing_zero_left, pairing_neg_left, …)
-    ├── Types.lean              VerifyingKey, Proof, R1CSRelation, wellFormed
+    ├── Types.lean              VerifyingKey, Proof, wellFormed
     ├── Spec.lean               Mathematical spec: vkX, Groth16Valid, Groth16ValidNeg
     ├── Impl.lean               Lean transliteration of groth16_verifier.ak
     │                           (computeVkX, verifyGroth16, foldl/zipWith equivalence)
