@@ -21,7 +21,7 @@ namespace Groth16Verifier.Properties.ZeroKnowledge
 open Groth16Verifier
 open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
      Groth16Verifier.Properties.Correctness Groth16Verifier.Properties.Soundness
-     Groth16Verifier.Properties.CompletenessProver
+     Groth16Verifier.Properties.CompletenessProver Groth16Verifier.Properties.Completeness
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -54,14 +54,13 @@ variable (Sim : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
 
 axiom groth16_perfect_zk
     (td      : Trapdoor)
-    (R1CS    : R1CSRelation Fr)
     (crs     : CRS Fr)
     (qap     : QAPEval Fr)
     (g1      : G1) (g2 : G2)
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness) :
+    (h_qap   : QAPSat qap (inputs ++ witness)) :
     -- The honest prover's output equals the simulator's output
     honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s
     = Sim td (mkVk g1 g2 crs qap inputs.length) inputs
@@ -73,7 +72,6 @@ axiom groth16_perfect_zk
     since sim(τ, x) = prove(x, w) and prove(x, w) verifies, sim verifies too. -/
 theorem simulated_proof_verifies
     (td      : Trapdoor)
-    (R1CS    : R1CSRelation Fr)
     (pd      : PairingData Fr G1 G2 GT)
     (crs     : CRS Fr)
     (qap     : QAPEval Fr)
@@ -81,23 +79,23 @@ theorem simulated_proof_verifies
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness)
+    (h_qap   : QAPSat qap (inputs ++ witness))
     (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
     verifyGroth16 pd
       (mkVk g1 g2 crs qap inputs.length)
       (Sim td (mkVk g1 g2 crs qap inputs.length) inputs)
       inputs = true := by
-  rw [← groth16_perfect_zk Trapdoor Sim td R1CS crs qap g1 g2 inputs witness r s h_r1cs]
-  exact Completeness.verifyGroth16_complete pd R1CS crs qap g1 g2 inputs witness r s h_r1cs h_wf
+  rw [← groth16_perfect_zk Trapdoor Sim td crs qap g1 g2 inputs witness r s h_qap]
+  exact verifyGroth16_complete pd crs qap g1 g2 inputs witness r s h_qap h_wf
 
 -- ── Witness Indistinguishability ──────────────────────────────────────────────
 
+omit [DecidableEq Fr] in
 /-- Proofs for the same statement with different witnesses are indistinguishable.
     Follows from: both equal the simulator's output (by ZK). -/
 theorem witness_indistinguishable
     (td       : Trapdoor)
     (Sim'     : Trapdoor → VerifyingKey G1 G2 → List Fr → Proof G1 G2)
-    (R1CS     : R1CSRelation Fr)
     (crs      : CRS Fr)
     (qap      : QAPEval Fr)
     (g1       : G1) (g2 : G2)
@@ -106,11 +104,11 @@ theorem witness_indistinguishable
     (witness₂ : List Fr)
     (r₁ s₁    : Fr)
     (r₂ s₂    : Fr)
-    (h_r1cs₁  : R1CS inputs witness₁)
-    (h_r1cs₂  : R1CS inputs witness₂) :
+    (h_qap₁   : QAPSat qap (inputs ++ witness₁))
+    (h_qap₂   : QAPSat qap (inputs ++ witness₂)) :
     honestProver g1 g2 crs qap (inputs ++ witness₁) inputs.length r₁ s₁
     = honestProver g1 g2 crs qap (inputs ++ witness₂) inputs.length r₂ s₂ := by
-  rw [groth16_perfect_zk Trapdoor Sim' td R1CS crs qap g1 g2 inputs witness₁ r₁ s₁ h_r1cs₁,
-      groth16_perfect_zk Trapdoor Sim' td R1CS crs qap g1 g2 inputs witness₂ r₂ s₂ h_r1cs₂]
+  rw [groth16_perfect_zk Trapdoor Sim' td crs qap g1 g2 inputs witness₁ r₁ s₁ h_qap₁,
+      groth16_perfect_zk Trapdoor Sim' td crs qap g1 g2 inputs witness₂ r₂ s₂ h_qap₂]
 
 end Groth16Verifier.Properties.ZeroKnowledge

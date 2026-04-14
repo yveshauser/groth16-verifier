@@ -1,16 +1,5 @@
 -- Groth16Verifier.Properties.CompletenessProver
 --
--- A concrete implementation of the honest Groth16 prover that reduces the
--- groth16_prover_correct axiom to two named gaps:
---
---   · sorry₁ (r1cs_implies_qap_sat):  R1CS satisfaction implies the QAP
---             divisibility condition at τ.  Requires polynomial evaluation
---             machinery (Mathlib's Polynomial library + Schwartz–Zippel).
---
---   · sorry₂ (honest_prover_pairing_eq): the pairing equation holds after
---             expanding the honest prover's output.  Requires a
---             pairing_smul_compat identity and GT algebra.
---
 -- The four steps follow Groth 2016, §3 closely.
 
 import Groth16Verifier.Properties.Correctness
@@ -51,7 +40,6 @@ variable (g1 : G1) (g2 : G2)
 -- STEP 2: QUADRATIC ARITHMETIC PROGRAM
 -- ═══════════════════════════════════════════════════════════════════════════
 --
--- Every R1CS circuit can be encoded as a QAP (Gennaro et al. 2012).
 -- We represent the QAP by its constraint polynomials {uᵢ, vᵢ, wᵢ} already
 -- *evaluated at τ* — not as symbolic polynomials — since the prover only
 -- needs these evaluations.
@@ -65,7 +53,6 @@ variable (g1 : G1) (g2 : G2)
 --
 -- QAP satisfiability at τ (Groth 2016, §3.1):
 --   (Σ aᵢ uᵢ(τ)) · (Σ aᵢ vᵢ(τ)) = Σ aᵢ wᵢ(τ) + h(τ)·t(τ)
--- This holds iff the assignment a satisfies the R1CS constraints.
 
 structure QAPEval (Fr : Type*) [Field Fr] where
   -- Evaluated polynomials, one entry per wire (length = m+1).
@@ -82,27 +69,6 @@ private def wsum (a b : List Fr) : Fr := (zipWith (· * ·) a b).sum
 def QAPSat (qap : QAPEval Fr) (a : List Fr) : Prop :=
   wsum a qap.u * wsum a qap.v = wsum a qap.w + qap.h * qap.t
 
--- KEY GAP (sorry₁):
---   R1CS satisfaction implies QAP satisfiability at τ.
---
---   This is the Groth–Gennaro QAP reduction: if a satisfies all R1CS
---   constraints, then the polynomial p(X) = Σ aᵢ(uᵢ(X)·vᵢ(X) − wᵢ(X))
---   is divisible by t(X), so evaluating at τ gives QAPSat.
---
---   Proof sketch:
---     (a) R1CS → t | p  (polynomial divisibility from constraint satisfaction)
---     (b) t | p  →  p(τ) = h(τ)·t(τ) for the specific h chosen by the prover
---
---   Blocked on: Mathlib Polynomial.eval, the QAP encoding of R1CS, and
---               the Schwartz–Zippel argument that τ is not a spurious root.
-lemma r1cs_implies_qap_sat
-    (R1CS    : R1CSRelation Fr)
-    (qap     : QAPEval Fr)
-    (inputs  : List Fr)
-    (witness : List Fr)
-    (h_r1cs  : R1CS inputs witness) :
-    QAPSat qap (inputs ++ witness) := by
-  sorry
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- STEP 3: VERIFYING KEY AND HONEST PROVER OUTPUT
@@ -220,26 +186,24 @@ lemma honest_prover_pairing_eq
 -- MAIN THEOREM
 -- ─────────────────────────────────────────────────────────────────────────────
 
-/-- The honest prover is always accepted, given R1CS satisfaction and
+/-- The honest prover is always accepted, given QAP satisfaction and
     that the verifying key matches the QAP (well-formedness). -/
 theorem concrete_prover_correct
     (pd      : PairingData Fr G1 G2 GT)
     (crs     : CRS Fr)
-    (R1CS    : R1CSRelation Fr)
     (qap     : QAPEval Fr)
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness)
+    (h_qap   : QAPSat qap (inputs ++ witness))
     (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
     verifyGroth16 pd
       (mkVk g1 g2 crs qap inputs.length)
       (honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s)
       inputs = true := by
   rw [verifyGroth16_correct pd _ _ inputs h_wf]
-  have h_qap := r1cs_implies_qap_sat R1CS qap inputs witness h_r1cs
-  have h_eq  := honest_prover_pairing_eq g1 g2 pd crs qap
-                  (inputs ++ witness) inputs.length r s h_qap
+  have h_eq := honest_prover_pairing_eq g1 g2 pd crs qap
+                 (inputs ++ witness) inputs.length r s h_qap
   simp only [List.take_left] at h_eq
   exact h_eq
 

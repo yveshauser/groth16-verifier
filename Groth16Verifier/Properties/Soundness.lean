@@ -8,7 +8,7 @@
 -- Structure:
 --   1. State the AGM knowledge soundness axiom
 --   2. Derive: verifier accepts → valid witness exists
---   3. Derive: verifier accepts → R1CS is satisfiable
+--   3. Derive: verifier accepts → QAP is satisfiable
 --
 -- The AGM axiom here is what ArkLib aims to mechanise formally.
 -- See: Groth 2016, Theorem 2; Fuchsbauer-Kiltz-Loss 2018 (AGM framework).
@@ -19,7 +19,7 @@ namespace Groth16Verifier.Properties.Soundness
 
 open Groth16Verifier
 open Groth16Verifier.Algebra Groth16Verifier.Types Groth16Verifier.Spec Groth16Verifier.Impl
-     Groth16Verifier.Properties.Correctness
+     Groth16Verifier.Properties.Correctness Groth16Verifier.Properties.CompletenessProver
 
 variable {Fr : Type*} [Field Fr] [DecidableEq Fr]
 variable {G1 : Type*} [AddCommGroup G1] [Module Fr G1]
@@ -43,43 +43,43 @@ variable {GT : Type*} [CommGroup GT]    [DecidableEq GT]
 --   - Connection to knowledge soundness via the BCS transform
 
 axiom agm_knowledge_extractor
-    (R1CS    : R1CSRelation Fr)
+    (qap     : QAPEval Fr)
     (pd      : PairingData Fr G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
     (h_valid : Groth16Valid pd vk proof inputs) :
-    ∃ witness : List Fr, R1CS inputs witness
+    ∃ witness : List Fr, QAPSat qap (inputs ++ witness)
 
 -- ── Soundness Theorem ─────────────────────────────────────────────────────────
 
-/-- If the verifier accepts a proof, the public inputs are satisfiable.
+/-- If the verifier accepts a proof, there exists a QAP-satisfying witness.
     Equivalently: the verifier cannot be convinced of a false statement. -/
 theorem verifyGroth16_sound
-    (R1CS    : R1CSRelation Fr)
+    (qap     : QAPEval Fr)
     (pd      : PairingData Fr G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
     (h_wf    : wellFormed Fr G1 G2 vk inputs)
     (h_acc   : verifyGroth16 pd vk proof inputs = true) :
-    ∃ witness : List Fr, R1CS inputs witness := by
+    ∃ witness : List Fr, QAPSat qap (inputs ++ witness) := by
   -- Convert the Bool result to the mathematical predicate (Correctness theorem)
   rw [verifyGroth16_correct pd vk proof inputs h_wf] at h_acc
   -- Apply the AGM knowledge extractor
-  exact agm_knowledge_extractor R1CS pd vk proof inputs h_acc
+  exact agm_knowledge_extractor qap pd vk proof inputs h_acc
 
 -- ── No False Positives ────────────────────────────────────────────────────────
 
-/-- The verifier never accepts a proof for an unsatisfiable instance. -/
+/-- The verifier never accepts a proof when no QAP-satisfying witness exists. -/
 theorem verifyGroth16_no_false_positives
-    (R1CS    : R1CSRelation Fr)
+    (qap     : QAPEval Fr)
     (pd      : PairingData Fr G1 G2 GT)
     (vk      : VerifyingKey G1 G2)
     (proof   : Proof G1 G2)
     (inputs  : List Fr)
     (h_wf    : wellFormed Fr G1 G2 vk inputs)
-    (h_unsat : ∀ witness : List Fr, ¬ R1CS inputs witness) :
+    (h_unsat : ∀ witness : List Fr, ¬ QAPSat qap (inputs ++ witness)) :
     verifyGroth16 pd vk proof inputs = false := by
   by_contra h_true
   -- h_true : verifyGroth16 ... ≠ false; Bool is {true,false} so this means = true
@@ -87,33 +87,32 @@ theorem verifyGroth16_no_false_positives
     rcases h : verifyGroth16 pd vk proof inputs with _ | _
     · exact absurd h h_true
     · rfl
-  obtain ⟨witness, h_wit⟩ := verifyGroth16_sound R1CS pd vk proof inputs h_wf h_acc
+  obtain ⟨witness, h_wit⟩ := verifyGroth16_sound qap pd vk proof inputs h_wf h_acc
   exact h_unsat witness h_wit
 
 -- ── Combining Soundness and Completeness ─────────────────────────────────────
 
 /-- The verifier is both sound and complete:
-    it accepts iff the statement is satisfiable. -/
+    it accepts iff a QAP-satisfying witness exists. -/
 theorem verifyGroth16_iff_satisfiable
-    (R1CS    : R1CSRelation Fr)
     (pd      : PairingData Fr G1 G2 GT)
-    (crs     : CompletenessProver.CRS Fr)
-    (qap     : CompletenessProver.QAPEval Fr)
+    (crs     : CRS Fr)
+    (qap     : QAPEval Fr)
     (g1      : G1) (g2 : G2)
     (inputs  : List Fr)
     (witness : List Fr)
     (r s     : Fr)
-    (h_r1cs  : R1CS inputs witness)
-    (h_wf    : wellFormed Fr G1 G2 (CompletenessProver.mkVk g1 g2 crs qap inputs.length) inputs) :
+    (h_qap   : QAPSat qap (inputs ++ witness))
+    (h_wf    : wellFormed Fr G1 G2 (mkVk g1 g2 crs qap inputs.length) inputs) :
     verifyGroth16 pd
-      (CompletenessProver.mkVk g1 g2 crs qap inputs.length)
-      (CompletenessProver.honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s)
+      (mkVk g1 g2 crs qap inputs.length)
+      (honestProver g1 g2 crs qap (inputs ++ witness) inputs.length r s)
       inputs = true
-    ↔ ∃ w : List Fr, R1CS inputs w := by
+    ↔ ∃ w : List Fr, QAPSat qap (inputs ++ w) := by
   constructor
   · intro h_acc
-    exact verifyGroth16_sound R1CS pd _ _ inputs h_wf h_acc
+    exact verifyGroth16_sound qap pd _ _ inputs h_wf h_acc
   · intro _
-    exact Completeness.verifyGroth16_complete pd R1CS crs qap g1 g2 inputs witness r s h_r1cs h_wf
+    exact Completeness.verifyGroth16_complete pd crs qap g1 g2 inputs witness r s h_qap h_wf
 
 end Groth16Verifier.Properties.Soundness

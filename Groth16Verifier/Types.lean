@@ -43,12 +43,6 @@ structure Proof where
   /-- π_C ∈ G1 -/
   C : G1
 
--- ── R1CS Relation ─────────────────────────────────────────────────────────────
--- The NP relation the circuit encodes.
--- x = public inputs, w = private witness.
-
-def R1CSRelation := List Fr → List Fr → Prop
-
 -- ── Well-formedness ───────────────────────────────────────────────────────────
 
 /-- A verifying key is well-formed for `n` public inputs iff ic has n+1 elements -/
