@@ -52,14 +52,15 @@ The library establishes four properties of `verify_groth16` in
 | # | Theorem | Statement | File | Proof status |
 |---|---|---|---|---|
 | 1 | **Correctness** | `verifyGroth16 pd vk proof inputs = true ↔ Groth16Valid pd vk proof inputs` | `Correctness.lean` | ✓ Proved (given `wellFormed vk inputs`) |
-| 2 | **Completeness** | An honest prover with a valid witness is always accepted | `Completeness.lean` | ✓ Proved, modulo `groth16_prover_correct` axiom |
+| 2 | **Completeness** | An honest prover with a valid witness is always accepted | `CompletenessProver.lean`, `Completeness.lean` | ✓ Proved (algebraic construction; no crypto axioms) |
 | 3 | **Soundness** | A cheating prover cannot be accepted | `Soundness.lean` | ✓ Proved, modulo `agm_knowledge_extractor` axiom |
 | 4 | **Zero-Knowledge** | Proof reveals nothing about the witness | `ZeroKnowledge.lean` | ✓ Proved, modulo `groth16_perfect_zk` axiom |
 
-**Correctness** is the core theorem and is proved purely from algebraic
-properties of pairings — no cryptographic hardness assumptions. The other
-three theorems are reduced to named axioms that correspond to standard
-Groth16 security results from the literature.
+**Correctness** and **Completeness** are proved purely from algebraic
+properties of pairings and QAP satisfiability — no cryptographic hardness
+assumptions. **Soundness** and **Zero-Knowledge** are reduced to named
+axioms that correspond to standard Groth16 security results from the
+literature.
 
 ### The Groth16 verification equation
 
@@ -95,10 +96,14 @@ groth16-verifier/
     ├── Impl.lean               Lean transliteration of groth16_verifier.ak
     │                           (computeVkX, verifyGroth16, foldl/zipWith equivalence)
     └── Properties/
-        ├── Correctness.lean    ★ verifyGroth16 = true ↔ Groth16Valid
-        ├── Completeness.lean   Honest prover always accepted
-        ├── Soundness.lean      Cheating prover rejected (under AGM)
-        └── ZeroKnowledge.lean  Witness indistinguishability
+        ├── Correctness.lean        ★ verifyGroth16 = true ↔ Groth16Valid
+        ├── CompletenessProver.lean Algebraic proof: honest prover satisfies the
+        │                           pairing equation given QAP satisfiability.
+        │                           Defines CRS, QAPEval, QAPSat, honestProver,
+        │                           mkVk and proves concrete_prover_correct.
+        ├── Completeness.lean       Honest prover always accepted (wraps above)
+        ├── Soundness.lean          Cheating prover rejected (under AGM)
+        └── ZeroKnowledge.lean      Witness indistinguishability
 ```
 
 ### Correspondence with the Aiken contract
@@ -167,7 +172,7 @@ algebraic identity unfolds.
 
 ### Fully proved
 
-These lemmas have no remaining gaps:
+These lemmas and theorems have no remaining gaps:
 
 - `Algebra.pairing_zero_left` / `pairing_zero_right` — `e(0, Q) = 1`
 - `Algebra.pairing_neg_left` — `e(-P, Q) = e(P, Q)⁻¹`
@@ -178,6 +183,10 @@ These lemmas have no remaining gaps:
 - `Correctness.computeVkX_eq_vkX_vk` — implementation matches spec
 - `Correctness.verifyGroth16_correct` — the main theorem (given `wellFormed`)
 - `Correctness.verifyGroth16_false_iff` — false iff equation does not hold
+- `CompletenessProver.honest_prover_pairing_eq` — honest prover satisfies the
+  Groth16 pairing equation (algebraic, from QAP satisfiability alone)
+- `CompletenessProver.concrete_prover_correct` — verifier returns `true` for
+  honest proofs (combines pairing equation proof with Correctness theorem)
 - `Completeness.verifyGroth16_complete` — honest prover accepted
 - `Completeness.verifyGroth16_no_false_negatives`
 - `Soundness.verifyGroth16_sound` — cheating prover rejected
@@ -187,11 +196,16 @@ These lemmas have no remaining gaps:
 
 ### Remaining admits
 
-There are no remaining `admit`s in `Correctness.lean`. The theorem
-`verifyGroth16_correct` is fully proved under the assumption
-`wellFormed Fr G1 G2 vk inputs` (i.e. `vk.ic.length = inputs.length + 1`),
-which reflects how the contract is actually deployed — the VK is
-hardcoded for a specific circuit with a fixed number of public inputs.
+There are no remaining `sorry`s in `Correctness.lean` or
+`CompletenessProver.lean`. In particular, `concrete_prover_correct` — the
+theorem that the honest prover is always accepted — is proved purely from
+the algebraic properties of pairings and QAP satisfiability, with no
+cryptographic axioms.
+
+`verifyGroth16_correct` assumes `wellFormed Fr G1 G2 vk inputs`
+(i.e. `vk.ic.length = inputs.length + 1`), which reflects how the contract
+is actually deployed — the VK is hardcoded for a specific circuit with a
+fixed number of public inputs.
 
 ### Named axioms
 
@@ -200,7 +214,6 @@ theorems from the literature:
 
 | Axiom | Theorem it supports | Literature reference |
 |---|---|---|
-| `groth16_prover_correct` | Completeness | Groth 2016, Theorem 1 |
 | `agm_knowledge_extractor` | Soundness | Fuchsbauer-Kiltz-Loss 2018 (AGM) |
 | `groth16_perfect_zk` | Zero-Knowledge | Groth 2016, Theorem 3 |
 

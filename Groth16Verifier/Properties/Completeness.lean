@@ -8,7 +8,7 @@
 -- This follows directly from:
 --   1. The Correctness theorem (verifier = true ↔ equation holds)
 --   2. The concrete proof in CompletenessProver that the honest prover's
---      output satisfies the pairing equation (modulo one named sorry)
+--      output satisfies the pairing equation
 
 import Groth16Verifier.Properties.CompletenessProver
 
